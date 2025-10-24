@@ -1,5 +1,6 @@
 import path from 'node:path';
 import type {
+  ChannelMapSource,
   MonoChannelSplitPlan,
   MultichannelSplitPlan,
   PlanMultichannelSplitOptions
@@ -12,16 +13,23 @@ function clampTargetBytes(targetSizeMB: number): number {
   return Math.max(1, targetSizeMB) * 1024 * 1024;
 }
 
-function resolveChannelLabel(labels: string[], channelIndex: number): string {
+function resolveChannelLabel(
+  labels: string[],
+  channelIndex: number,
+  defaultSource: ChannelMapSource,
+): { label: string; source: ChannelMapSource } {
   const raw = labels[channelIndex];
   if (typeof raw === 'string') {
     const trimmed = raw.trim();
     if (trimmed.length > 0) {
-      return trimmed;
+      return { label: trimmed, source: defaultSource };
     }
   }
 
-  return `ch${String(channelIndex + 1).padStart(2, '0')}`;
+  return {
+    label: `ch${String(channelIndex + 1).padStart(2, '0')}`,
+    source: 'fallback',
+  };
 }
 
 function normaliseFormat(format: string): string {
@@ -58,14 +66,17 @@ export function planMultichannelSplit(options: PlanMultichannelSplitOptions): Mu
   const outputs: MonoChannelSplitPlan[] = [];
   let needsSevenZipOnly = false;
 
+  const defaultSource: ChannelMapSource = options.channelMapSource ?? 'unknown';
+
   for (let index = 0; index < channelCount; index += 1) {
-    const label = resolveChannelLabel(options.channelLabels, index);
+    const { label, source } = resolveChannelLabel(options.channelLabels, index, defaultSource);
     const channelFileName = `${parsed.name}_${label}${parsed.ext}`;
     const relativePath = parsed.dir ? `${parsed.dir}/${channelFileName}` : channelFileName;
 
     outputs.push({
       channelIndex: index,
       channelLabel: label,
+      channelMapSource: source,
       relativePath,
       estimatedSizeBytes: perChannelSize
     });

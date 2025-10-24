@@ -62,6 +62,7 @@ describe('probeAudio', () => {
       channels: 2,
       channelMask: 0x3,
       channelLabels: ['L', 'R'],
+      channelMapSource: 'mask',
     });
   });
 
@@ -98,6 +99,7 @@ describe('probeAudio', () => {
       channels: 6,
       channelMask: 0x3f,
       channelLabels: ['L', 'R', 'C', 'LFE', 'Ls', 'Rs'],
+      channelMapSource: 'mask',
     });
   });
 

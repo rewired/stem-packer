@@ -21,12 +21,14 @@ function createPlan(relativePath: string): MultichannelSplitPlan {
       {
         channelIndex: 0,
         channelLabel: 'L',
+        channelMapSource: 'mask',
         relativePath: relativePath.replace(/\.([^.]+)$/i, '_L.$1'),
         estimatedSizeBytes: 0,
       },
       {
         channelIndex: 1,
         channelLabel: 'R',
+        channelMapSource: 'mask',
         relativePath: relativePath.replace(/\.([^.]+)$/i, '_R.$1'),
         estimatedSizeBytes: 0,
       },
@@ -85,6 +87,7 @@ describe('executeMultichannelSplit', () => {
       'mixdown_R.wav',
     ]);
     expect(result.outputs.map((output) => output.channelLabel)).toEqual(['L', 'R']);
+    expect(result.outputs.map((output) => output.channelMapSource)).toEqual(['mask', 'mask']);
     expect(result.outputs.map((output) => output.channelIndex)).toEqual([0, 1]);
     expect(result.outputs.every((output) => output.derivedFrom === 'mixdown.wav')).toBe(true);
 

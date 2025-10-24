@@ -1,4 +1,5 @@
 import { execFile } from 'node:child_process/promises';
+import type { ChannelMapSource } from './types.js';
 
 export interface AudioProbeResult {
   format: string;
@@ -6,6 +7,7 @@ export interface AudioProbeResult {
   channels: number;
   channelMask?: number;
   channelLabels: string[];
+  channelMapSource: ChannelMapSource;
 }
 
 export interface ProbeAudioOptions {
@@ -217,11 +219,15 @@ export async function probeAudio(path: string, options: ProbeAudioOptions = {}):
 
   const channelMask = parseChannelMask(audioStream);
 
+  const channelLabels = channelMaskToLabels(channelMask, channels);
+  const channelMapSource: ChannelMapSource = channelMask ? 'mask' : 'fallback';
+
   return {
     format: formatName,
     bytes: Number.isNaN(bytes) ? 0 : bytes,
     channels,
     channelMask,
-    channelLabels: channelMaskToLabels(channelMask, channels),
+    channelLabels,
+    channelMapSource,
   };
 }
