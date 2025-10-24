@@ -247,10 +247,25 @@ export async function pack7zVolumes(options: SevenZipPackOptions): Promise<Seven
       `@${path.basename(listPath)}`,
     ];
 
-    const child = childProcess.spawn(binary, args, {
-      cwd: stagingRoot,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const spawnError = (error: unknown) => {
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : JSON.stringify(error);
+      return new Error(`7z exited before starting: ${message || 'unknown error'}`);
+    };
+
+    let child: childProcess.ChildProcess;
+    try {
+      child = childProcess.spawn(binary, args, {
+        cwd: stagingRoot,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    } catch (error) {
+      throw spawnError(error);
+    }
 
     let aborted = false;
     const abortHandler = () => {
@@ -289,9 +304,7 @@ export async function pack7zVolumes(options: SevenZipPackOptions): Promise<Seven
 
     const exitCode: number = await new Promise((resolve, reject) => {
       child.once('error', (error) => {
-        const message =
-          error instanceof Error ? error.message : typeof error === 'string' ? error : JSON.stringify(error);
-        reject(new Error(`7z exited before starting: ${message}`));
+        reject(spawnError(error));
       });
       child.once('close', (code) => {
         resolve(code ?? 0);
