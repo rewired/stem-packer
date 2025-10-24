@@ -37,6 +37,9 @@ All notable changes to StemPacker will be documented in this file.
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 
 ### Fixed
+- Replaced direct imports of `node:child_process/promises` in the pack engine with a
+  `child_process` + `util.promisify` wrapper so Electron runtimes missing the
+  built-in promises module no longer fail during startup.
 - Normalized 7z spawn error handling so launch failures (including Windows spawn EFTYPE cases) report a consistent "7z exited"
   message and still clean up orphaned volume files across platforms.
 - Published `@stem-packer/i18n` as CommonJS so the Electron main bundle can require translators without export resolution errors.

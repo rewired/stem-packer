@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const execFileMock = vi.fn();
 
-vi.mock('node:child_process/promises', () => ({
+vi.mock('../execFile.js', () => ({
   execFile: (...args: unknown[]) => execFileMock(...args),
 }));
 
