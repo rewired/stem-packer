@@ -4,6 +4,9 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Implemented the desktop app shell with header, About modal, drag-and-drop input, and audio file table.
+- Wired IPC folder selection, scanning, and preference persistence with JSON storage under the user data path.
+- Introduced configurable packing preferences (target size, format, output directory, ignore rules) with localized UI strings.
 - Added German locale alongside English with shared JSON catalogs and interpolation support.
 - Exposed `createTranslator` helper with parameterized translations for main and renderer processes.
 - Documented fixed-English `INFO.txt` labels and protected them with unit tests.

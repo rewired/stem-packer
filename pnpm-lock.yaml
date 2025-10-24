@@ -56,6 +56,9 @@ importers:
       electron:
         specifier: ^38.2.0
         version: 38.4.0
+      picomatch:
+        specifier: ^4.0.2
+        version: 4.0.3
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -69,6 +72,9 @@ importers:
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.9.1
+      '@types/picomatch':
+        specifier: ^3.0.1
+        version: 3.0.2
       '@vitejs/plugin-react':
         specifier: ^4.3.1
         version: 4.7.0(vite@7.1.12(@types/node@22.18.12)(jiti@1.21.7))
@@ -878,6 +884,9 @@ packages:
 
   '@types/node@22.18.12':
     resolution: {integrity: sha512-BICHQ67iqxQGFSzfCFTT7MRQ5XcBjG5aeKh5Ok38UBbPe5fxTyE+aHFxwVrGyr8GNlqFMLKD1D3P2K/1ks8tog==}
+
+  '@types/picomatch@3.0.2':
+    resolution: {integrity: sha512-n0i8TD3UDB7paoMMxA3Y65vUncFJXjcUf7lQY7YyKGl6031FNjfsLs6pdLFCy2GNFxItPJG8GvvpbZc2skH7WA==}
 
   '@types/plist@3.0.5':
     resolution: {integrity: sha512-E6OCaRmAe4WDmWNsL/9RMqdkkzDCY1etutkflWk4c+AcjDU07Pcz1fQwTX0TQz+Pxqn9i4L1TU3UFpjnrcDgxA==}
@@ -4019,6 +4028,8 @@ snapshots:
   '@types/node@22.18.12':
     dependencies:
       undici-types: 6.21.0
+
+  '@types/picomatch@3.0.2': {}
 
   '@types/plist@3.0.5':
     dependencies:

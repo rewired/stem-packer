@@ -39,4 +39,4 @@ export function useTranslation() {
   return ctx;
 }
 
-export type { LocaleKey, TranslationKey, TranslationParams };
+export type { LocaleKey, TranslationKey, TranslationParams, Translator };

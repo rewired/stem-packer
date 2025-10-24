@@ -36,7 +36,7 @@ describe('INFO.txt localization policy', () => {
         attribution: 'Attribution'
       });
 
-      expect(translator('heading_welcome')).not.toBe(INFO_TXT_LABELS.title);
+      expect(translator('app_header_title')).not.toBe(INFO_TXT_LABELS.title);
     }
   });
 });
