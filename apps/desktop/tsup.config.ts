@@ -15,7 +15,7 @@ export default defineConfig((options) => ({
   outDir: 'dist',
   outExtension() {
     return {
-      js: '.js'
+      js: '.cjs'
     };
   }
 }));

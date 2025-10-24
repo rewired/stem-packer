@@ -52,7 +52,7 @@ async function createMainWindow() {
     title: t('app_title'),
     backgroundColor: '#1f2937',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false
