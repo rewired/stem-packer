@@ -50,6 +50,9 @@ importers:
       '@stem-packer/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@stem-packer/pack-engine':
+        specifier: workspace:*
+        version: link:../../packages/pack-engine
       '@stem-packer/ui':
         specifier: workspace:*
         version: link:../../packages/ui

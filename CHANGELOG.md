@@ -4,6 +4,15 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Wired the packing manager to stream progress IPC events, honor cancellations, and reject jobs
+  when the destination lacks a safety margin of free space.
+- Added persistent artist storage alongside existing preference fields plus Vitest coverage for
+  cloning semantics.
+- Documented quickstart steps, electron-builder packaging commands, and 7z prerequisites in the
+  README.
+- Configured electron-builder targets (macOS dmg/zip, Windows NSIS/zip, Linux AppImage/tar.gz) and
+  a tag-triggered GitHub Actions job that builds release artifacts.
+- Added regression coverage for progress event ordering and packing-manager cancellation cleanup.
 - Created pack metadata and INFO.txt builders that encode UTF-8/no-BOM payloads with channel provenance, split strategy,
   and fixed English labels, alongside tests covering structure and localization guards.
 - Added an ffprobe-backed `probeAudio` helper that extracts channel counts, masks, and canonical labels for multichannel

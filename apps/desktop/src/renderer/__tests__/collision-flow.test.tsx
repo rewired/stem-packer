@@ -56,7 +56,14 @@ describe('overwrite / abort flow', () => {
         deletedCount: 2,
         kind: 'zip',
         outputDir: basePreferences.outputDir
-      })
+      }),
+      getArtist: vi.fn().mockResolvedValue({ artist: '' }),
+      saveArtist: vi.fn().mockResolvedValue({ artist: '' }),
+      startPacking: vi.fn(),
+      cancelPacking: vi.fn().mockResolvedValue(false),
+      onPackingProgress: vi.fn().mockReturnValue(() => {}),
+      onPackingResult: vi.fn().mockReturnValue(() => {}),
+      onPackingError: vi.fn().mockReturnValue(() => {})
     };
 
     window.stemPacker = api;

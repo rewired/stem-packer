@@ -87,21 +87,24 @@ export async function resolveSevenZipBinary(customPath?: string): Promise<string
 
   const envOverride = process.env.STEM_PACKER_7Z_PATH;
   if (envOverride) {
-    resolvedSevenZipPath = envOverride;
-    await ensureExecutable(resolvedSevenZipPath);
-    return resolvedSevenZipPath;
+    const resolved = envOverride;
+    resolvedSevenZipPath = resolved;
+    await ensureExecutable(resolved);
+    return resolved;
   }
 
   const located = await locateSevenZipOnPath();
   if (located) {
-    resolvedSevenZipPath = located;
-    await ensureExecutable(resolvedSevenZipPath);
-    return resolvedSevenZipPath;
+    const resolved = located;
+    resolvedSevenZipPath = resolved;
+    await ensureExecutable(resolved);
+    return resolved;
   }
 
-  resolvedSevenZipPath = path7za;
-  await ensureExecutable(resolvedSevenZipPath);
-  return resolvedSevenZipPath;
+  const resolved = path7za;
+  resolvedSevenZipPath = resolved;
+  await ensureExecutable(resolved);
+  return resolved;
 }
 
 async function stageMetadata(stagingRoot: string, entries: MetadataEntry[]) {
