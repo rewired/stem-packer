@@ -8,6 +8,8 @@ import {
   type AppInfo,
   type Preferences
 } from '../shared/preferences';
+import type { CollisionCheckPayload } from '../shared/collisions';
+import { detectOutputCollisions, overwriteOutputCollisions } from './collisions';
 import { scanAudioFiles } from './scanner';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -131,6 +133,14 @@ ipcMain.handle('scan:folder', async (_event, folderPath: string) => {
   const result = await scanAudioFiles(directoryPath, preferences);
   await preferencesStore.set({ lastInputDir: directoryPath });
   return result;
+});
+
+ipcMain.handle('packing:detect-collisions', async (_event, payload: CollisionCheckPayload) => {
+  return detectOutputCollisions(payload);
+});
+
+ipcMain.handle('packing:overwrite-collisions', async (_event, payload: CollisionCheckPayload) => {
+  return overwriteOutputCollisions(payload);
 });
 
 app.whenReady().then(async () => {
