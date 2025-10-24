@@ -46,12 +46,14 @@ describe('executeMultichannelSplit', () => {
   });
 
   it('creates mono temps using channel labels and cleans up when requested', async () => {
-    execFileMock.mockImplementation(async (_binary, args, _options) => {
-      void _options;
-      const outputPath = args.at(-1) as string;
-      await fs.writeFile(outputPath, 'mono-channel');
-      return { stdout: '', stderr: '' };
-    });
+    execFileMock.mockImplementation(
+      async (_binary: string, args: string[], _options: { signal?: AbortSignal }) => {
+        void _options;
+        const outputPath = args.at(-1) as string;
+        await fs.writeFile(outputPath, 'mono-channel');
+        return { stdout: '', stderr: '' };
+      },
+    );
 
     const plan = createPlan('mixdown.wav');
     const options: ExecuteMultichannelSplitOptions = {
@@ -99,15 +101,21 @@ describe('executeMultichannelSplit', () => {
   it('removes staged temps when extraction is aborted', async () => {
     const controller = new AbortController();
 
-    execFileMock.mockImplementation(async (_binary, _args, _options) => {
-      void _binary;
-      void _args;
-      void _options;
-      controller.abort();
-      const error = new Error('cancelled');
-      error.name = 'AbortError';
-      throw error;
-    });
+    execFileMock.mockImplementation(
+      async (
+        _binary: string,
+        _args: string[],
+        _options: { signal?: AbortSignal },
+      ) => {
+        void _binary;
+        void _args;
+        void _options;
+        controller.abort();
+        const error = new Error('cancelled');
+        error.name = 'AbortError';
+        throw error;
+      },
+    );
 
     const plan = createPlan('mixdown.wav');
 

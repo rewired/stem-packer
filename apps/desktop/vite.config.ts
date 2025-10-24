@@ -24,7 +24,11 @@ export default defineConfig({
       '@renderer': path.resolve(__dirname, 'src/renderer'),
       '@shared': path.resolve(__dirname, 'src/shared'),
       '@stem-packer/i18n': path.resolve(__dirname, '../../packages/i18n/src'),
-      '@stem-packer/ui': path.resolve(__dirname, '../../packages/ui/src')
+      '@stem-packer/ui': path.resolve(__dirname, '../../packages/ui/src'),
+      '@stem-packer/pack-engine': path.resolve(
+        __dirname,
+        '../../packages/pack-engine/src'
+      )
     }
   }
 });

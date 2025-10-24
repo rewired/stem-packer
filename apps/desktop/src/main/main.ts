@@ -3,61 +3,46 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createTranslator } from '@stem-packer/i18n';
-import {
-  DEFAULT_PREFERENCES,
-  type AppInfo,
-  type Preferences
-} from '../shared/preferences';
+import type { AppInfo, Preferences } from '../shared/preferences';
 import type { CollisionCheckPayload } from '../shared/collisions';
+import type { ArtistProfile } from '../shared/artist';
+import type { PackingRequest, PackingResult, PackingProgressEvent } from '../shared/packing';
 import { detectOutputCollisions, overwriteOutputCollisions } from './collisions';
 import { scanAudioFiles } from './scanner';
+import { PreferencesStore, ArtistStore } from './stores';
+import { PackingManager, InsufficientDiskSpaceError } from './packingManager';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const devServerUrl = process.env.VITE_DEV_SERVER_URL;
 const t = createTranslator('en');
+const userDataPath = app.getPath('userData');
+const preferencesStore = new PreferencesStore(userDataPath);
+const artistStore = new ArtistStore(userDataPath);
 
-class PreferencesStore {
-  private filePath: string;
-  private data: Preferences = { ...DEFAULT_PREFERENCES };
-
-  constructor(filename: string) {
-    this.filePath = path.join(app.getPath('userData'), filename);
-  }
-
-  async load() {
-    try {
-      const content = await fs.readFile(this.filePath, 'utf8');
-      const parsed = JSON.parse(content) as Preferences;
-      this.data = { ...DEFAULT_PREFERENCES, ...parsed };
-    } catch (error) {
-      this.data = { ...DEFAULT_PREFERENCES };
-      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-        console.error('Failed to read preferences:', error);
-      }
+function broadcast<T>(channel: string, payload: T) {
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (!window.isDestroyed()) {
+      window.webContents.send(channel, payload);
     }
-  }
-
-  get(): Preferences {
-    return { ...this.data, ignore_globs: [...this.data.ignore_globs] };
-  }
-
-  async set(update: Partial<Preferences>): Promise<Preferences> {
-    this.data = {
-      ...this.data,
-      ...update,
-      ignore_globs:
-        update.ignore_globs !== undefined
-          ? [...update.ignore_globs]
-          : [...this.data.ignore_globs]
-    };
-
-    await fs.mkdir(path.dirname(this.filePath), { recursive: true });
-    await fs.writeFile(this.filePath, JSON.stringify(this.data, null, 2), 'utf8');
-    return this.get();
   }
 }
 
-const preferencesStore = new PreferencesStore('settings.json');
+const packingManager = new PackingManager({
+  preferencesStore,
+  artistStore,
+  emitProgress: (progress: PackingProgressEvent) => {
+    broadcast('packing:progress', progress);
+  },
+  emitResult: (result: PackingResult) => {
+    broadcast('packing:result', result);
+  },
+  emitError: (error: Error) => {
+    broadcast('packing:error', {
+      name: error.name,
+      message: error.message,
+    });
+  },
+});
 
 async function createMainWindow() {
   const window = new BrowserWindow({
@@ -83,8 +68,8 @@ async function createMainWindow() {
   }
 }
 
-async function loadPreferences() {
-  await preferencesStore.load();
+async function loadPersistentData() {
+  await Promise.all([preferencesStore.load(), artistStore.load()]);
 }
 
 async function getAppInfo(): Promise<AppInfo> {
@@ -104,6 +89,15 @@ ipcMain.handle('preferences:get', async () => {
 
 ipcMain.handle('preferences:set', async (_event, update: Partial<Preferences>) => {
   return preferencesStore.set(update);
+});
+
+ipcMain.handle('artist:get', async () => {
+  return artistStore.get();
+});
+
+ipcMain.handle('artist:set', async (_event, payload: string | ArtistProfile) => {
+  const value = typeof payload === 'string' ? payload : payload?.artist ?? '';
+  return artistStore.set(value);
 });
 
 ipcMain.handle('dialog:choose-input-folder', async () => {
@@ -143,8 +137,28 @@ ipcMain.handle('packing:overwrite-collisions', async (_event, payload: Collision
   return overwriteOutputCollisions(payload);
 });
 
+ipcMain.handle('packing:start', async (_event, payload: PackingRequest) => {
+  try {
+    return await packingManager.start(payload);
+  } catch (error) {
+    if (error instanceof InsufficientDiskSpaceError) {
+      const enriched = Object.assign(new Error(error.message), {
+        name: error.name,
+        requiredBytes: error.requiredBytes,
+        availableBytes: error.availableBytes,
+      });
+      throw enriched;
+    }
+    throw error;
+  }
+});
+
+ipcMain.handle('packing:cancel', async () => {
+  return packingManager.cancel();
+});
+
 app.whenReady().then(async () => {
-  await loadPreferences();
+  await loadPersistentData();
   await createMainWindow();
 
   app.on('activate', async () => {

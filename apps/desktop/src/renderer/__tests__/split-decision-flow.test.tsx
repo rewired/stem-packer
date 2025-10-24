@@ -75,7 +75,14 @@ describe('multichannel split decision flow', () => {
       chooseInputFolder: vi.fn(),
       savePreferences,
       detectCollisions,
-      overwriteCollisions: overwriteCollisions as StemPackerApi['overwriteCollisions']
+      overwriteCollisions: overwriteCollisions as StemPackerApi['overwriteCollisions'],
+      getArtist: vi.fn().mockResolvedValue({ artist: '' }),
+      saveArtist: vi.fn().mockResolvedValue({ artist: '' }),
+      startPacking: vi.fn(),
+      cancelPacking: vi.fn().mockResolvedValue(false),
+      onPackingProgress: vi.fn().mockReturnValue(() => {}),
+      onPackingResult: vi.fn().mockReturnValue(() => {}),
+      onPackingError: vi.fn().mockReturnValue(() => {})
     };
 
     window.stemPacker = api;

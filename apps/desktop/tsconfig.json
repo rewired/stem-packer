@@ -11,12 +11,15 @@
       "@stem-packer/i18n": ["../../packages/i18n/src"],
       "@stem-packer/i18n/*": ["../../packages/i18n/src/*"],
       "@stem-packer/ui": ["../../packages/ui/src"],
-      "@stem-packer/ui/*": ["../../packages/ui/src/*"]
+      "@stem-packer/ui/*": ["../../packages/ui/src/*"],
+      "@stem-packer/pack-engine": ["../../packages/pack-engine/src"],
+      "@stem-packer/pack-engine/*": ["../../packages/pack-engine/src/*"]
     }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "src/**/*.d.ts",
     "vite.config.ts",
     "tsup.config.ts",
     "vitest.config.ts"

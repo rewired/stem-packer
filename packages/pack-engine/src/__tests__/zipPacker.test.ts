@@ -5,7 +5,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { buildZipPlan } from '../binPacking.js';
 import { packZipBestFit } from '../zipPacker.js';
-import { AbortPackingError, PackCandidate } from '../types.js';
+import { AbortPackingError, PackCandidate, type ZipProgress } from '../types.js';
 
 function createTempDir() {
   return mkdtempSync(path.join(os.tmpdir(), 'pack-engine-'));
@@ -112,5 +112,59 @@ describe('packZipBestFit', () => {
     await expect(packPromise).rejects.toBeInstanceOf(AbortPackingError);
     const entries = await fs.readdir(tempDir);
     expect(entries.filter((name) => name.endsWith('.zip'))).toHaveLength(0);
+  });
+
+  test('emits progress events in archive order with a completed terminator', async () => {
+    const files: PackCandidate[] = [
+      {
+        absolutePath: createFile(tempDir, 'mix/a.wav', 400 * 1024),
+        relativePath: 'mix/a.wav',
+        size: 400 * 1024,
+      },
+      {
+        absolutePath: createFile(tempDir, 'mix/b.wav', 400 * 1024),
+        relativePath: 'mix/b.wav',
+        size: 400 * 1024,
+      },
+      {
+        absolutePath: createFile(tempDir, 'mix/c.wav', 400 * 1024),
+        relativePath: 'mix/c.wav',
+        size: 400 * 1024,
+      },
+    ];
+
+    const events: ZipProgress[] = [];
+
+    await packZipBestFit({
+      files,
+      archiveBaseName: 'stems',
+      targetSizeMB: 1,
+      outputDir: tempDir,
+      metadataEntries,
+      onProgress: (progress) => {
+        events.push(progress);
+      },
+    });
+
+    expect(events.length).toBeGreaterThan(0);
+    expect(events[0]).toMatchObject({ state: 'packing', current: 0, total: 2 });
+    expect(events.at(-1)).toMatchObject({ state: 'completed', current: 2, total: 2, percent: 100 });
+
+    for (let index = 1; index < events.length; index += 1) {
+      expect(events[index].current).toBeGreaterThanOrEqual(events[index - 1].current);
+    }
+
+    const firstIndices = new Map<string, number>();
+    events.forEach((event, index) => {
+      if (event.currentArchive && !firstIndices.has(event.currentArchive)) {
+        firstIndices.set(event.currentArchive, index);
+      }
+    });
+
+    const firstArchiveIndex = firstIndices.get('stems-01.zip');
+    const secondArchiveIndex = firstIndices.get('stems-02.zip');
+    expect(firstArchiveIndex).toBeDefined();
+    expect(secondArchiveIndex).toBeDefined();
+    expect(firstArchiveIndex!).toBeLessThan(secondArchiveIndex!);
   });
 });

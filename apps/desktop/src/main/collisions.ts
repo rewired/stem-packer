@@ -12,7 +12,7 @@ interface CollisionMatch {
   files: string[];
 }
 
-function resolveOutputDirectory(inputFolder: string, outputDir?: string): string {
+export function resolveOutputDirectory(inputFolder: string, outputDir?: string): string {
   if (outputDir && outputDir.trim().length > 0) {
     const trimmed = outputDir.trim();
     if (path.isAbsolute(trimmed)) {
