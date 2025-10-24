@@ -127,3 +127,36 @@ export interface PlanMultichannelSplitOptions {
   /** Optional per-mono overhead to add when estimating derived sizes. */
   overheadBytes?: number;
 }
+
+export interface MonoSplitCandidate extends PackCandidate {
+  /** Original multichannel relative path the mono asset was derived from. */
+  derivedFrom: string;
+  /** Channel index copied into this mono asset. */
+  channelIndex: number;
+  /** Canonical channel label copied into this mono asset. */
+  channelLabel: string;
+}
+
+export interface ExecuteMultichannelSplitOptions {
+  /** Absolute path to the multichannel source on disk. */
+  sourceAbsolutePath: string;
+  /** Relative archive path for the multichannel source (used for metadata linkage). */
+  sourceRelativePath: string;
+  /** Planned split outputs returned by the planner. */
+  plan: MultichannelSplitPlan;
+  /** Optional override for the ffmpeg binary path. */
+  ffmpegPath?: string;
+  /** Abort signal that cancels extraction and triggers cleanup. */
+  signal?: AbortSignal;
+  /** Optional base directory for temporary mono assets (defaults to OS temp directory). */
+  tempDir?: string;
+}
+
+export interface ExecuteMultichannelSplitResult {
+  /** Root temporary directory containing the derived mono assets. */
+  tempDir: string | null;
+  /** Pack candidates ready to be consumed by the packers. */
+  outputs: MonoSplitCandidate[];
+  /** Idempotent cleanup hook that deletes temporary mono files. */
+  cleanup: () => Promise<void>;
+}
