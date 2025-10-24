@@ -9,11 +9,9 @@ import type {
   Preferences,
   ScanResult
 } from '../shared/preferences';
-
-interface ToastState {
-  message: string | null;
-  visible: boolean;
-}
+import { DEFAULT_PREFERENCES } from '../shared/preferences';
+import { estimateArchiveCount } from '../main/estimator';
+import { useToast } from './hooks/useToast';
 
 const sizeKeys = ['file_size_bytes', 'file_size_kb', 'file_size_mb', 'file_size_gb'] as const;
 
@@ -340,7 +338,7 @@ function AppContent() {
   const [isScanning, setIsScanning] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const [toast, setToast] = useState<ToastState>({ message: null, visible: false });
+  const { toast, showToast } = useToast();
 
   useEffect(() => {
     async function bootstrap() {
@@ -351,7 +349,7 @@ function AppContent() {
       setAppInfo(info);
       setPreferences(prefs);
       if (prefs.lastInputDir) {
-        await performScan(prefs.lastInputDir);
+        await performScan(prefs.lastInputDir, prefs);
       }
     }
 
@@ -361,20 +359,7 @@ function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!toast.message) {
-      return;
-    }
-
-    setToast((current) => ({ ...current, visible: true }));
-    const handle = setTimeout(() => {
-      setToast({ message: null, visible: false });
-    }, 10000);
-
-    return () => clearTimeout(handle);
-  }, [toast.message]);
-
-  const performScan = async (folderPath: string) => {
+  const performScan = async (folderPath: string, overridePreferences?: Preferences) => {
     setIsScanning(true);
     setIgnoredCount(0);
     try {
@@ -382,18 +367,39 @@ function AppContent() {
       setFiles(result.files);
       setSelectedFolder(result.folderPath);
       setIgnoredCount(result.ignoredCount);
-      setPreferences((current) =>
-        current ? { ...current, lastInputDir: result.folderPath } : current
+      const activePreferences = overridePreferences ?? preferences ?? DEFAULT_PREFERENCES;
+      setPreferences((current) => {
+        if (current) {
+          return { ...current, lastInputDir: result.folderPath };
+        }
+        if (overridePreferences) {
+          return { ...overridePreferences, lastInputDir: result.folderPath };
+        }
+        return current;
+      });
+
+      const estimate = estimateArchiveCount(result.files, activePreferences);
+      const hasSplits = estimate.splitCount > 0;
+      const hasIgnored = result.ignoredCount > 0;
+      const messageKey = hasSplits
+        ? hasIgnored
+          ? 'toast_archive_estimate_split_ignored'
+          : 'toast_archive_estimate_split'
+        : hasIgnored
+          ? 'toast_archive_estimate_ignored'
+          : 'toast_archive_estimate';
+
+      showToast(
+        t(messageKey, {
+          zipCount: estimate.zipArchiveCount,
+          sevenZipCount: estimate.sevenZipVolumeCount,
+          splitCount: estimate.splitCount,
+          ignoredCount: result.ignoredCount
+        })
       );
-      if (result.ignoredCount > 0) {
-        setToast({
-          message: t('toast_ignored_count', { count: result.ignoredCount }),
-          visible: true
-        });
-      }
     } catch (error) {
       console.error('Failed to scan folder', error);
-      setToast({ message: t('toast_scan_failed'), visible: true });
+      showToast(t('toast_scan_failed'));
     } finally {
       setIsScanning(false);
     }
@@ -421,10 +427,10 @@ function AppContent() {
     try {
       const updated = await window.stemPacker.savePreferences(preferences);
       setPreferences(updated);
-      setToast({ message: t('toast_preferences_saved'), visible: true });
+      showToast(t('toast_preferences_saved'));
     } catch (error) {
       console.error('Failed to save preferences', error);
-      setToast({ message: t('toast_preferences_failed'), visible: true });
+      showToast(t('toast_preferences_failed'));
     } finally {
       setIsSavingPreferences(false);
     }

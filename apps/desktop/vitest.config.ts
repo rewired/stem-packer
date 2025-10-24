@@ -9,7 +9,13 @@ export default mergeConfig(
       environment: 'jsdom',
       setupFiles: [path.resolve(__dirname, 'vitest.setup.ts')],
       globals: true,
-      include: ['**/*.test.ts', '**/*.test.tsx', '**/__tests__/**/*.{ts,tsx}']
+      include: [
+        '**/*.test.ts',
+        '**/*.test.tsx',
+        '**/__tests__/**/*.{ts,tsx}',
+        '../main/**/*.test.ts',
+        '../main/**/__tests__/**/*.{ts,tsx}'
+      ]
     }
   })
 );

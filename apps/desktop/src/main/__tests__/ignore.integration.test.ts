@@ -74,7 +74,8 @@ describe('ignore integration', () => {
     const expectedBytes = result.files.reduce((sum, file) => sum + file.sizeBytes, 0);
     expect(estimate.totalBytes).toBe(expectedBytes);
     expect(estimate.consideredFiles).toHaveLength(result.files.length);
-    expect(estimate.archiveCount).toBeGreaterThanOrEqual(1);
+    expect(estimate.zipArchiveCount).toBeGreaterThanOrEqual(1);
+    expect(estimate.sevenZipVolumeCount).toBeGreaterThanOrEqual(1);
 
     const packable = filterPackableFiles(manualList, preferences);
     expect(packable).toEqual(result.files);
