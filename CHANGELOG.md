@@ -14,6 +14,7 @@ All notable changes to StemPacker will be documented in this file.
 - Applied preference-driven ignore globs across scanning, estimation, and packing with UI feedback, defaults, and tests.
 - Delivered a deterministic archive estimator that reports ZIP best-fit and 7z volume counts, including multichannel mono splits, via a 10-second toast summary.
 - Added overwrite/abort collision handling with localized dialogs, deletion safeguards, and renderer + main process tests covering ZIP archives and 7z volume sets.
+- Implemented the streaming ZIP best-fit pack engine with deterministic bin planning, cancellation safety, and ignore-rule enforcement.
 
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
