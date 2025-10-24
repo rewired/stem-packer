@@ -1,0 +1,24 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node", "vite/client"],
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@stem-packer/i18n": ["../../packages/i18n/src"],
+      "@stem-packer/i18n/*": ["../../packages/i18n/src/*"],
+      "@stem-packer/ui": ["../../packages/ui/src"],
+      "@stem-packer/ui/*": ["../../packages/ui/src/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts",
+    "tsup.config.ts",
+    "vitest.config.ts"
+  ]
+}
