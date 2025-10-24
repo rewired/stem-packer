@@ -10,6 +10,10 @@ All notable changes to StemPacker will be documented in this file.
 - Added German locale alongside English with shared JSON catalogs and interpolation support.
 - Exposed `createTranslator` helper with parameterized translations for main and renderer processes.
 - Documented fixed-English `INFO.txt` labels and protected them with unit tests.
+- Integrated the Material Symbols Outlined icon system with a shared `<Icon />` wrapper that supports variation controls.
+
+### Changed
+- Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 
 ## [0.1.0] - 2024-12-04
 ### Added

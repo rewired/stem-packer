@@ -5,3 +5,22 @@
 :root {
   color-scheme: dark;
 }
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: nowrap;
+  user-select: none;
+  font-variation-settings:
+    'FILL' var(--icon-fill, 0),
+    'wght' var(--icon-weight, 400),
+    'GRAD' var(--icon-grade, 0),
+    'opsz' var(--icon-optical-size, 48);
+}

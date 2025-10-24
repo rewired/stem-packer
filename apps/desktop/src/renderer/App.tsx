@@ -476,6 +476,7 @@ function AppContent() {
       <div className={toast.visible && toast.message ? 'toast toast-start' : 'hidden'}>
         {toast.message ? (
           <div className="alert alert-info">
+            <Icon name="info" className="text-xl" />
             <span>{toast.message}</span>
           </div>
         ) : null}
