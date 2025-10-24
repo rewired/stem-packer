@@ -18,6 +18,7 @@ All notable changes to StemPacker will be documented in this file.
 - Added overwrite/abort collision handling with localized dialogs, deletion safeguards, and renderer + main process tests covering ZIP archives and 7z volume sets.
 - Implemented the streaming ZIP best-fit pack engine with deterministic bin planning, cancellation safety, and ignore-rule enforcement.
 - Added a 7z volume pack engine that stages metadata once, enforces ignore rules, resolves bundled/system binaries, parses progress output, and deletes orphaned `.7z.00N` parts after failures or cancellation.
+- Added a multichannel split planner that maps lossless surround stems to mono outputs and flags oversize cases requiring 7z volumes.
 
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.

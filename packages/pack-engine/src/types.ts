@@ -90,3 +90,40 @@ export interface SevenZipPackResult {
   volumeSizeBytes: number;
   files: PackCandidate[];
 }
+
+export interface MonoChannelSplitPlan {
+  /** Zero-based index for the channel in the original multichannel source. */
+  channelIndex: number;
+  /** Canonical label (e.g. `L`, `R`, `LFE`) or fallback `chNN` string. */
+  channelLabel: string;
+  /** Relative path for the derived mono asset using forward slashes. */
+  relativePath: string;
+  /** Estimated byte size of the mono asset including container overhead. */
+  estimatedSizeBytes: number;
+}
+
+export interface MultichannelSplitPlan {
+  /** Indicates whether the source should be split into mono assets. */
+  shouldSplit: boolean;
+  /** True when at least one mono exceeds the target limit, forcing 7z volumes. */
+  needsSevenZipOnly: boolean;
+  /** Planned mono outputs sorted by channel index. */
+  outputs: MonoChannelSplitPlan[];
+}
+
+export interface PlanMultichannelSplitOptions {
+  /** Relative path of the original source used to derive mono file names. */
+  relativePath: string;
+  /** Total byte size of the multichannel source. */
+  bytes: number;
+  /** Canonical container/codec format string. */
+  format: string;
+  /** Number of channels reported by the probe. */
+  channels: number;
+  /** Canonical labels per channel (length should match `channels`). */
+  channelLabels: string[];
+  /** Target size limit in megabytes. */
+  targetSizeMB: number;
+  /** Optional per-mono overhead to add when estimating derived sizes. */
+  overheadBytes?: number;
+}
