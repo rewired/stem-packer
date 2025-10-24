@@ -7,3 +7,4 @@ coverage
 apps/desktop/dist
 packages/i18n/dist
 packages/ui/dist
+packages/pack-engine/dist

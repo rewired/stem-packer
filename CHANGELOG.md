@@ -41,6 +41,8 @@ All notable changes to StemPacker will be documented in this file.
   message and still clean up orphaned volume files across platforms.
 - Published `@stem-packer/i18n` as CommonJS so the Electron main bundle can require translators without export resolution errors.
 - Prebuilt internal workspace packages before launching the desktop dev server to prevent missing module failures when Electron boots.
+- Emitted CommonJS builds (with declarations) for `@stem-packer/pack-engine` and exposed them via package exports so the Electron
+  main bundle can resolve the workspace dependency without "exports" lookup failures.
 
 ## [0.1.0] - 2024-12-04
 ### Added
