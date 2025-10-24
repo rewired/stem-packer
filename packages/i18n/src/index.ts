@@ -1,23 +1,50 @@
 import en from './locales/en.json';
+import de from './locales/de.json';
 
-type LocaleData = typeof en;
-export type LocaleKey = 'en';
-export type TranslationKey = keyof LocaleData;
+const FALLBACK_LOCALE = 'en' as const;
 
-const locales: Record<LocaleKey, LocaleData> = {
-  en
-};
+export type LocaleKey = 'en' | 'de';
+
+const locales = {
+  en,
+  de
+} satisfies Record<LocaleKey, typeof en>;
+
+export type TranslationKey = keyof typeof en;
+export type TranslationParams = Record<string, string | number>;
 
 export interface TranslatorOptions {
   fallbackLocale?: LocaleKey;
 }
 
-export function createTranslator(locale: LocaleKey, options: TranslatorOptions = {}) {
-  const fallback = options.fallbackLocale ?? 'en';
+function formatMessage(message: string, params?: TranslationParams): string {
+  if (!params) {
+    return message;
+  }
 
-  return (key: TranslationKey): string => {
+  return message.replace(/\{(\w+)\}/g, (match, key) => {
+    if (Object.prototype.hasOwnProperty.call(params, key)) {
+      const value = params[key];
+      return value != null ? String(value) : '';
+    }
+
+    return match;
+  });
+}
+
+export function createTranslator(locale: LocaleKey, options: TranslatorOptions = {}) {
+  const fallback = options.fallbackLocale ?? FALLBACK_LOCALE;
+
+  return (key: TranslationKey, params?: TranslationParams): string => {
     const catalog = locales[locale] ?? locales[fallback];
-    return catalog[key] ?? locales[fallback][key];
+    const fallbackCatalog = locales[fallback];
+    const template = catalog[key] ?? fallbackCatalog[key];
+
+    if (!template) {
+      return key;
+    }
+
+    return formatMessage(template, params);
   };
 }
 

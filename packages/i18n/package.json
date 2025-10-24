@@ -8,7 +8,8 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./locales/en.json": "./src/locales/en.json"
+    "./locales/en.json": "./src/locales/en.json",
+    "./locales/de.json": "./src/locales/de.json"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",

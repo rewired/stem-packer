@@ -1,7 +1,12 @@
-import { createContext, useContext, type ReactNode } from 'react';
-import { createTranslator, type LocaleKey, type TranslationKey } from '@stem-packer/i18n';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
+import {
+  createTranslator,
+  type LocaleKey,
+  type TranslationKey,
+  type TranslationParams
+} from '@stem-packer/i18n';
 
-type Translator = ReturnType<typeof createTranslator>;
+type Translator = (key: TranslationKey, params?: TranslationParams) => string;
 
 interface TranslationContextValue {
   locale: LocaleKey;
@@ -20,7 +25,7 @@ export function TranslationProvider({
   locale: LocaleKey;
   children: ReactNode;
 }) {
-  const translator = createTranslator(locale);
+  const translator = useMemo(() => createTranslator(locale), [locale]);
 
   return (
     <TranslationContext.Provider value={{ locale, t: translator }}>
@@ -34,4 +39,4 @@ export function useTranslation() {
   return ctx;
 }
 
-export type { LocaleKey, TranslationKey };
+export type { LocaleKey, TranslationKey, TranslationParams };

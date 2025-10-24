@@ -1,0 +1,7 @@
+{
+  "app_title": "StemPacker",
+  "heading_welcome": "Willkommen bei StemPacker",
+  "description_get_started": "Wählen Sie einen Eingabeordner, um ihn zu scannen und Archivanzahlen abzuschätzen.",
+  "button_choose_folder": "Ordner auswählen",
+  "toast_ignored_count": "{count} Dateien ignoriert"
+}

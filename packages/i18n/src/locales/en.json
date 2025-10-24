@@ -2,5 +2,6 @@
   "app_title": "StemPacker",
   "heading_welcome": "Welcome to StemPacker",
   "description_get_started": "Choose an input folder to scan and estimate archive counts.",
-  "button_choose_folder": "Select Folder"
+  "button_choose_folder": "Select Folder",
+  "toast_ignored_count": "Ignored {count} files"
 }
