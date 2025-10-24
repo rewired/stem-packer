@@ -141,6 +141,9 @@ importers:
 
   packages/pack-engine:
     dependencies:
+      7zip-bin:
+        specifier: ^5.2.0
+        version: 5.2.0
       picomatch:
         specifier: ^4.0.2
         version: 4.0.3
