@@ -35,6 +35,8 @@ describe('estimateArchiveCount', () => {
     expect(estimateA.sevenZipVolumeCount).toBe(estimateB.sevenZipVolumeCount);
     expect(estimateA.splitCount).toBe(0);
     expect(estimateB.splitCount).toBe(0);
+    expect(estimateA.splitCandidateCount).toBe(0);
+    expect(estimateB.splitCandidateCount).toBe(0);
   });
 
   it('accounts for multichannel mono splits when enabled', () => {
@@ -58,9 +60,29 @@ describe('estimateArchiveCount', () => {
     });
 
     expect(withoutSplit.splitCount).toBe(0);
+    expect(withoutSplit.splitCandidateCount).toBe(1);
     expect(withSplit.splitCount).toBe(2);
+    expect(withSplit.splitCandidateCount).toBe(1);
     expect(withSplit.totalBytes).toBeGreaterThan(withoutSplit.totalBytes);
     expect(withSplit.zipArchiveCount).toBeGreaterThanOrEqual(withoutSplit.zipArchiveCount);
     expect(withSplit.sevenZipVolumeCount).toBeGreaterThanOrEqual(withoutSplit.sevenZipVolumeCount);
+  });
+
+  it('ignores split candidates when mono outputs would still exceed the target', () => {
+    const largeFile = makeFile({
+      name: 'orchestra.wav',
+      relativePath: 'orchestra.wav',
+      sizeBytes: 40 * MB,
+      channels: 2
+    });
+
+    const estimate = estimateArchiveCount([largeFile], {
+      ...DEFAULT_PREFERENCES,
+      targetSizeMB: 8,
+      auto_split_multichannel_to_mono: true
+    });
+
+    expect(estimate.splitCandidateCount).toBe(1);
+    expect(estimate.splitCount).toBe(0);
   });
 });

@@ -40,6 +40,15 @@ interface CollisionPrompt {
   outputDir: string;
 }
 
+interface SplitDecisionPrompt {
+  folderPath: string;
+  candidateCount: number;
+}
+
+interface PerformScanOptions {
+  suppressSplitPrompt?: boolean;
+}
+
 function DragAndDropArea({
   isActive,
   onDrop,
@@ -379,6 +388,49 @@ function CollisionDialog({
   );
 }
 
+function SplitDecisionDialog({
+  prompt,
+  onChooseSplit,
+  onChooseSevenZip,
+  onCancel
+}: {
+  prompt: SplitDecisionPrompt | null;
+  onChooseSplit: () => void | Promise<void>;
+  onChooseSevenZip: () => void | Promise<void>;
+  onCancel: () => void | Promise<void>;
+}) {
+  const { t } = useTranslation();
+
+  if (!prompt) {
+    return null;
+  }
+
+  return (
+    <dialog className="modal modal-open" open onClose={() => onCancel()}>
+      <div className="modal-box">
+        <h3 className="text-lg font-bold">{t('dialog_multichannel_title')}</h3>
+        <p className="py-4 text-base-content/80">
+          {t('dialog_multichannel_message', { count: prompt.candidateCount })}
+        </p>
+        <div className="modal-action flex flex-col gap-2 sm:flex-row">
+          <button type="button" className="btn" onClick={() => onCancel()}>
+            {t('dialog_multichannel_cancel')}
+          </button>
+          <button type="button" className="btn" onClick={() => onChooseSevenZip()}>
+            {t('dialog_multichannel_choose_7z')}
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => onChooseSplit()}>
+            {t('dialog_multichannel_choose_split')}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" className="modal-backdrop" onSubmit={() => onCancel()}>
+        <button type="submit">{t('dialog_multichannel_cancel')}</button>
+      </form>
+    </dialog>
+  );
+}
+
 function AppContent() {
   const { t } = useTranslation();
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
@@ -389,6 +441,9 @@ function AppContent() {
   const [isScanning, setIsScanning] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
   const [collisionPrompt, setCollisionPrompt] = useState<CollisionPrompt | null>(null);
+  const [splitDecisionPrompt, setSplitDecisionPrompt] = useState<SplitDecisionPrompt | null>(
+    null
+  );
   const [aboutOpen, setAboutOpen] = useState(false);
   const { toast, showToast } = useToast();
 
@@ -411,10 +466,15 @@ function AppContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const performScan = async (folderPath: string, overridePreferences?: Preferences) => {
+  const performScan = async (
+    folderPath: string,
+    overridePreferences?: Preferences,
+    options: PerformScanOptions = {}
+  ) => {
     setIsScanning(true);
     setIgnoredCount(0);
     setCollisionPrompt(null);
+    setSplitDecisionPrompt(null);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
       setFiles(result.files);
@@ -470,6 +530,17 @@ function AppContent() {
       } catch (error) {
         console.error('Failed to detect output collisions', error);
       }
+
+      if (
+        !options.suppressSplitPrompt &&
+        !activePreferences.auto_split_multichannel_to_mono &&
+        estimate.splitCandidateCount > 0
+      ) {
+        setSplitDecisionPrompt({
+          folderPath: result.folderPath,
+          candidateCount: estimate.splitCandidateCount
+        });
+      }
     } catch (error) {
       console.error('Failed to scan folder', error);
       showToast(t('toast_scan_failed'));
@@ -524,8 +595,9 @@ function AppContent() {
     }
   };
 
-  const handleAbortCollisions = async () => {
+  const resetToIdle = async () => {
     setCollisionPrompt(null);
+    setSplitDecisionPrompt(null);
     setFiles([]);
     setSelectedFolder(null);
     setIgnoredCount(0);
@@ -537,6 +609,52 @@ function AppContent() {
     } catch (error) {
       console.error('Failed to clear last input directory', error);
     }
+  };
+
+  const handleAbortCollisions = async () => {
+    await resetToIdle();
+  };
+
+  const handleSplitDecisionSplit = async () => {
+    if (!splitDecisionPrompt) {
+      return;
+    }
+
+    const prompt = splitDecisionPrompt;
+    setSplitDecisionPrompt(null);
+
+    try {
+      const updated = await window.stemPacker.savePreferences({
+        auto_split_multichannel_to_mono: true
+      });
+      setPreferences(updated);
+      await performScan(prompt.folderPath, updated);
+    } catch (error) {
+      console.error('Failed to enable multichannel auto split', error);
+      showToast(t('toast_preferences_failed'));
+    }
+  };
+
+  const handleSplitDecisionSevenZip = async () => {
+    if (!splitDecisionPrompt) {
+      return;
+    }
+
+    const prompt = splitDecisionPrompt;
+    setSplitDecisionPrompt(null);
+
+    try {
+      const updated = await window.stemPacker.savePreferences({ format: '7z' });
+      setPreferences(updated);
+      await performScan(prompt.folderPath, updated, { suppressSplitPrompt: true });
+    } catch (error) {
+      console.error('Failed to switch to 7z volumes', error);
+      showToast(t('toast_preferences_failed'));
+    }
+  };
+
+  const handleSplitDecisionCancel = async () => {
+    await resetToIdle();
   };
 
   return (
@@ -603,6 +721,12 @@ function AppContent() {
         prompt={collisionPrompt}
         onIgnore={handleOverwriteCollisions}
         onAbort={handleAbortCollisions}
+      />
+      <SplitDecisionDialog
+        prompt={splitDecisionPrompt}
+        onChooseSplit={handleSplitDecisionSplit}
+        onChooseSevenZip={handleSplitDecisionSevenZip}
+        onCancel={handleSplitDecisionCancel}
       />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} appInfo={appInfo} />
     </main>
