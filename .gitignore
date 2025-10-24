@@ -1,3 +1,9 @@
 node_modules
-dist-electron
-dist
+.DS_Store
+Thumbs.db
+.dist
+*.log
+coverage
+apps/desktop/dist
+packages/i18n/dist
+packages/ui/dist
