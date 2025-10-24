@@ -5,6 +5,11 @@ import type {
   Preferences,
   ScanResult
 } from '../shared/preferences';
+import type {
+  CollisionCheckPayload,
+  CollisionDetectionResult,
+  CollisionResolutionResult
+} from '../shared/collisions';
 
 const api = {
   getVersion: () => process.versions.electron,
@@ -22,6 +27,16 @@ const api = {
   },
   savePreferences: async (preferences: Partial<Preferences>): Promise<Preferences> => {
     return ipcRenderer.invoke('preferences:set', preferences);
+  },
+  detectCollisions: async (
+    payload: CollisionCheckPayload
+  ): Promise<CollisionDetectionResult> => {
+    return ipcRenderer.invoke('packing:detect-collisions', payload);
+  },
+  overwriteCollisions: async (
+    payload: CollisionCheckPayload
+  ): Promise<CollisionResolutionResult> => {
+    return ipcRenderer.invoke('packing:overwrite-collisions', payload);
   }
 };
 

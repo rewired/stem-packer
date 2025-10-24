@@ -10,6 +10,7 @@ import type {
   ScanResult
 } from '../shared/preferences';
 import { DEFAULT_PREFERENCES } from '../shared/preferences';
+import type { CollisionCheckPayload, CollisionKind } from '../shared/collisions';
 import { estimateArchiveCount } from '../main/estimator';
 import { useToast } from './hooks/useToast';
 
@@ -30,6 +31,13 @@ function formatBytes(size: number, t: Translator) {
 
   const formatted = unitIndex === 0 ? Math.round(value).toString() : value.toFixed(1);
   return t(sizeKeys[unitIndex], { value: formatted });
+}
+
+interface CollisionPrompt {
+  payload: CollisionCheckPayload;
+  kind: CollisionKind;
+  collisionCount: number;
+  outputDir: string;
 }
 
 function DragAndDropArea({
@@ -302,7 +310,7 @@ function AboutModal({ open, onClose, appInfo }: { open: boolean; onClose: () => 
   const { t } = useTranslation();
 
   return (
-    <dialog className={`modal ${open ? 'modal-open' : ''}`} onClose={() => onClose()}>
+    <dialog className={`modal ${open ? 'modal-open' : ''}`} open={open} onClose={() => onClose()}>
       <div className="modal-box">
         <h3 className="text-lg font-bold">{t('about_title')}</h3>
         <p className="py-4 text-base-content/80">{t('about_description')}</p>
@@ -328,6 +336,49 @@ function AboutModal({ open, onClose, appInfo }: { open: boolean; onClose: () => 
   );
 }
 
+function CollisionDialog({
+  prompt,
+  onIgnore,
+  onAbort
+}: {
+  prompt: CollisionPrompt | null;
+  onIgnore: () => void | Promise<void>;
+  onAbort: () => void | Promise<void>;
+}) {
+  const { t } = useTranslation();
+
+  if (!prompt) {
+    return null;
+  }
+
+  const messageKey =
+    prompt.kind === 'zip' ? 'dialog_overwrite_message_zip' : 'dialog_overwrite_message_7z';
+  const messageParams: Record<string, string | number> =
+    prompt.kind === 'zip'
+      ? { count: prompt.collisionCount, directory: prompt.outputDir }
+      : { directory: prompt.outputDir };
+
+  return (
+    <dialog className="modal modal-open" open onClose={() => onAbort()}>
+      <div className="modal-box">
+        <h3 className="text-lg font-bold">{t('dialog_overwrite_title')}</h3>
+        <p className="py-4 text-base-content/80">{t(messageKey, messageParams)}</p>
+        <div className="modal-action">
+          <button type="button" className="btn" onClick={() => onAbort()}>
+            {t('dialog_overwrite_abort')}
+          </button>
+          <button type="button" className="btn btn-primary" onClick={() => onIgnore()}>
+            {t('dialog_overwrite_ignore')}
+          </button>
+        </div>
+      </div>
+      <form method="dialog" className="modal-backdrop" onSubmit={() => onAbort()}>
+        <button type="submit">{t('dialog_overwrite_abort')}</button>
+      </form>
+    </dialog>
+  );
+}
+
 function AppContent() {
   const { t } = useTranslation();
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
@@ -337,6 +388,7 @@ function AppContent() {
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
+  const [collisionPrompt, setCollisionPrompt] = useState<CollisionPrompt | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const { toast, showToast } = useToast();
 
@@ -362,6 +414,7 @@ function AppContent() {
   const performScan = async (folderPath: string, overridePreferences?: Preferences) => {
     setIsScanning(true);
     setIgnoredCount(0);
+    setCollisionPrompt(null);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
       setFiles(result.files);
@@ -397,6 +450,26 @@ function AppContent() {
           ignoredCount: result.ignoredCount
         })
       );
+
+      const collisionPayload: CollisionCheckPayload = {
+        inputFolder: result.folderPath,
+        format: activePreferences.format,
+        outputDir: activePreferences.outputDir
+      };
+
+      try {
+        const collisionResult = await window.stemPacker.detectCollisions(collisionPayload);
+        if (collisionResult.hasCollisions && collisionResult.kind) {
+          setCollisionPrompt({
+            payload: collisionPayload,
+            kind: collisionResult.kind,
+            collisionCount: collisionResult.collisionCount,
+            outputDir: collisionResult.outputDir
+          });
+        }
+      } catch (error) {
+        console.error('Failed to detect output collisions', error);
+      }
     } catch (error) {
       console.error('Failed to scan folder', error);
       showToast(t('toast_scan_failed'));
@@ -433,6 +506,36 @@ function AppContent() {
       showToast(t('toast_preferences_failed'));
     } finally {
       setIsSavingPreferences(false);
+    }
+  };
+
+  const handleOverwriteCollisions = async () => {
+    if (!collisionPrompt) {
+      return;
+    }
+
+    try {
+      await window.stemPacker.overwriteCollisions(collisionPrompt.payload);
+      showToast(t('toast_overwrite_done'));
+      setCollisionPrompt(null);
+    } catch (error) {
+      console.error('Failed to overwrite existing outputs', error);
+      showToast(t('toast_overwrite_failed'));
+    }
+  };
+
+  const handleAbortCollisions = async () => {
+    setCollisionPrompt(null);
+    setFiles([]);
+    setSelectedFolder(null);
+    setIgnoredCount(0);
+    setPreferences((current) => (current ? { ...current, lastInputDir: undefined } : current));
+    showToast(t('toast_action_cancelled'));
+
+    try {
+      await window.stemPacker.savePreferences({ lastInputDir: undefined });
+    } catch (error) {
+      console.error('Failed to clear last input directory', error);
     }
   };
 
@@ -496,6 +599,11 @@ function AppContent() {
         ) : null}
       </div>
 
+      <CollisionDialog
+        prompt={collisionPrompt}
+        onIgnore={handleOverwriteCollisions}
+        onAbort={handleAbortCollisions}
+      />
       <AboutModal open={aboutOpen} onClose={() => setAboutOpen(false)} appInfo={appInfo} />
     </main>
   );
