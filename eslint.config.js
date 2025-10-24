@@ -48,6 +48,14 @@ export default tseslint.config(
         {
           selector: "Literal[value=/\\p{Extended_Pictographic}/u]",
           message: 'Emojis are not allowed in UI layers.'
+        },
+        {
+          selector: "TemplateElement[value.raw=/\\p{Extended_Pictographic}/u]",
+          message: 'Emojis are not allowed in UI layers.'
+        },
+        {
+          selector: "JSXText[value=/\\p{Extended_Pictographic}/u]",
+          message: 'Emojis are not allowed in UI layers.'
         }
       ]
     }
