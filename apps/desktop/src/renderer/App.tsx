@@ -335,6 +335,7 @@ function AppContent() {
   const [appInfo, setAppInfo] = useState<AppInfo | null>(null);
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [files, setFiles] = useState<AudioFileItem[]>([]);
+  const [ignoredCount, setIgnoredCount] = useState(0);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
@@ -375,10 +376,12 @@ function AppContent() {
 
   const performScan = async (folderPath: string) => {
     setIsScanning(true);
+    setIgnoredCount(0);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
       setFiles(result.files);
       setSelectedFolder(result.folderPath);
+      setIgnoredCount(result.ignoredCount);
       setPreferences((current) =>
         current ? { ...current, lastInputDir: result.folderPath } : current
       );
@@ -437,12 +440,17 @@ function AppContent() {
             <div className="flex flex-col gap-4">
               <DragAndDropArea isActive={files.length > 0} onDrop={handleDrop} disabled={isScanning} />
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm text-base-content/70">
-                  {selectedFolder ? (
-                    <span>{t('selected_folder_label', { path: selectedFolder })}</span>
-                  ) : (
-                    <span>{t('selected_folder_empty')}</span>
-                  )}
+                <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+                  <span>
+                    {selectedFolder
+                      ? t('selected_folder_label', { path: selectedFolder })
+                      : t('selected_folder_empty')}
+                  </span>
+                  {ignoredCount > 0 ? (
+                    <span className="badge badge-outline badge-secondary">
+                      {t('badge_ignored_count', { count: ignoredCount })}
+                    </span>
+                  ) : null}
                 </div>
                 <button
                   className="btn btn-primary"

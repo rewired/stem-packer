@@ -1,28 +1,18 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import fs from 'node:fs/promises';
-import type { Dirent, Stats } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createTranslator } from '@stem-packer/i18n';
-import picomatch from 'picomatch';
 import {
-  AUDIO_EXTENSIONS,
   DEFAULT_PREFERENCES,
   type AppInfo,
-  type AudioFileItem,
-  type Preferences,
-  type ScanResult
+  type Preferences
 } from '../shared/preferences';
+import { scanAudioFiles } from './scanner';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const devServerUrl = process.env.VITE_DEV_SERVER_URL;
 const t = createTranslator('en');
-
-const audioExtensions = new Set(AUDIO_EXTENSIONS);
-
-function toPosixPath(filePath: string): string {
-  return filePath.split(path.sep).join('/');
-}
 
 class PreferencesStore {
   private filePath: string;
@@ -102,83 +92,6 @@ async function getAppInfo(): Promise<AppInfo> {
   };
 }
 
-function normalizeExtension(filename: string): string {
-  return path.extname(filename).toLowerCase();
-}
-
-async function walkAudioFiles(
-  folderPath: string,
-  preferences: Preferences
-): Promise<ScanResult> {
-  const files: AudioFileItem[] = [];
-  let ignoredCount = 0;
-  const stack: string[] = [folderPath];
-  const matcher =
-    preferences.ignore_enabled && preferences.ignore_globs.length > 0
-      ? picomatch(preferences.ignore_globs, { dot: true })
-      : null;
-
-  while (stack.length > 0) {
-    const currentDir = stack.pop();
-    if (!currentDir) {
-      continue;
-    }
-
-    let dirEntries: Dirent[];
-    try {
-      dirEntries = await fs.readdir(currentDir, { withFileTypes: true });
-    } catch (error) {
-      console.error('Failed to read directory', currentDir, error);
-      continue;
-    }
-
-    for (const entry of dirEntries) {
-      const fullPath = path.join(currentDir, entry.name);
-      const relative = path.relative(folderPath, fullPath);
-      const posixRelative = toPosixPath(relative);
-
-      if (matcher && matcher(posixRelative)) {
-        ignoredCount += 1;
-        continue;
-      }
-
-      if (entry.isDirectory()) {
-        stack.push(fullPath);
-        continue;
-      }
-
-      const extension = normalizeExtension(entry.name);
-      if (!audioExtensions.has(extension)) {
-        continue;
-      }
-
-      let stats: Stats;
-      try {
-        stats = await fs.stat(fullPath);
-      } catch (error) {
-        console.error('Failed to stat file', fullPath, error);
-        continue;
-      }
-
-      files.push({
-        name: entry.name,
-        relativePath: posixRelative,
-        extension,
-        sizeBytes: stats.size,
-        fullPath
-      });
-    }
-  }
-
-  files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
-
-  return {
-    folderPath,
-    files,
-    ignoredCount
-  };
-}
-
 ipcMain.handle('app:get-info', async () => {
   return getAppInfo();
 });
@@ -215,7 +128,7 @@ ipcMain.handle('scan:folder', async (_event, folderPath: string) => {
     ? resolvedPath
     : path.dirname(resolvedPath);
 
-  const result = await walkAudioFiles(directoryPath, preferences);
+  const result = await scanAudioFiles(directoryPath, preferences);
   await preferencesStore.set({ lastInputDir: directoryPath });
   return result;
 });
