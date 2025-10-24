@@ -19,6 +19,7 @@ All notable changes to StemPacker will be documented in this file.
 - Implemented the streaming ZIP best-fit pack engine with deterministic bin planning, cancellation safety, and ignore-rule enforcement.
 - Added a 7z volume pack engine that stages metadata once, enforces ignore rules, resolves bundled/system binaries, parses progress output, and deletes orphaned `.7z.00N` parts after failures or cancellation.
 - Added a multichannel split planner that maps lossless surround stems to mono outputs and flags oversize cases requiring 7z volumes.
+- Implemented a lossless multichannel split executor that renders mono temp files via `ffmpeg`, tracks cleanup, and verifies naming + lifecycle through integration tests.
 
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
