@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process/promises';
+import { execFile } from './execFile.js';
 import type { ChannelMapSource } from './types.js';
 
 export interface AudioProbeResult {

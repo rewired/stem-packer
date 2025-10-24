@@ -6,7 +6,7 @@ const execFileMock = vi.fn<
   (binary: string, args: string[], options: { signal?: AbortSignal }) => Promise<{ stdout?: string; stderr?: string }>
 >();
 
-vi.mock('node:child_process/promises', () => ({
+vi.mock('../execFile.js', () => ({
   execFile: (...args: Parameters<typeof execFileMock>) => execFileMock(...args),
 }));
 

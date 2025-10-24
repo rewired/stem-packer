@@ -1,4 +1,4 @@
-import { execFile } from 'node:child_process/promises';
+import { execFile } from './execFile.js';
 import { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
