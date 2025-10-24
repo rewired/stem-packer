@@ -12,6 +12,7 @@ All notable changes to StemPacker will be documented in this file.
 - Documented fixed-English `INFO.txt` labels and protected them with unit tests.
 - Integrated the Material Symbols Outlined icon system with a shared `<Icon />` wrapper that supports variation controls.
 - Applied preference-driven ignore globs across scanning, estimation, and packing with UI feedback, defaults, and tests.
+- Delivered a deterministic archive estimator that reports ZIP best-fit and 7z volume counts, including multichannel mono splits, via a 10-second toast summary.
 
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.

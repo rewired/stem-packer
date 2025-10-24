@@ -49,6 +49,7 @@ export interface AudioFileItem {
   extension: string;
   sizeBytes: number;
   fullPath: string;
+  channels?: number;
 }
 
 export interface ScanResult {
