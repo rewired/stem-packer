@@ -2,6 +2,12 @@
 
 All notable changes to StemPacker will be documented in this file.
 
+## [Unreleased]
+### Added
+- Added German locale alongside English with shared JSON catalogs and interpolation support.
+- Exposed `createTranslator` helper with parameterized translations for main and renderer processes.
+- Documented fixed-English `INFO.txt` labels and protected them with unit tests.
+
 ## [0.1.0] - 2024-12-04
 ### Added
 - Initialized the StemPacker pnpm monorepo with Electron, Vite, React, and TypeScript foundations.
