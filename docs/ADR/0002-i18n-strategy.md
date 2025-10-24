@@ -20,3 +20,4 @@ The desktop application needs localizable strings for both the Electron main pro
 - Adding locales only requires a new JSON file and TypeScript import in `@stem-packer/i18n`.
 - UI strings can be migrated incrementally without repeating formatting logic.
 - Tests guard against accidental localization of `INFO.txt` labels, upholding the archival contract while still allowing the rest of the UI to be translated.
+- The shared package emits CommonJS output so Electron's main-process bundle can require translators without extra transpilation steps while renderer tooling continues using the source via path aliases.

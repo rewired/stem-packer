@@ -39,6 +39,7 @@ All notable changes to StemPacker will be documented in this file.
 ### Fixed
 - Normalized 7z spawn error handling so launch failures (including Windows spawn EFTYPE cases) report a consistent "7z exited"
   message and still clean up orphaned volume files across platforms.
+- Published `@stem-packer/i18n` as CommonJS so the Electron main bundle can require translators without export resolution errors.
 
 ## [0.1.0] - 2024-12-04
 ### Added
