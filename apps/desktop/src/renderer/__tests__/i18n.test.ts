@@ -16,6 +16,7 @@ describe('i18n setup', () => {
   it('supports parameter interpolation', () => {
     const t = createTranslator('de');
     expect(t('toast_ignored_count', { count: 3 })).toBe('3 Dateien ignoriert');
+    expect(t('badge_ignored_count', { count: 2 })).toBe('Ignoriert: 2');
   });
 });
 

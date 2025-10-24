@@ -11,6 +11,7 @@ All notable changes to StemPacker will be documented in this file.
 - Exposed `createTranslator` helper with parameterized translations for main and renderer processes.
 - Documented fixed-English `INFO.txt` labels and protected them with unit tests.
 - Integrated the Material Symbols Outlined icon system with a shared `<Icon />` wrapper that supports variation controls.
+- Applied preference-driven ignore globs across scanning, estimation, and packing with UI feedback, defaults, and tests.
 
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.

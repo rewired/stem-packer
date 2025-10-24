@@ -36,6 +36,7 @@
   "settings_ignore_enabled_hint": "Überspringt passende Dateien beim Scannen und Packen.",
   "settings_ignore_patterns": "Glob-Muster ignorieren",
   "settings_ignore_patterns_hint": "Ein Muster pro Zeile, relativ zum ausgewählten Ordner.",
+  "badge_ignored_count": "Ignoriert: {count}",
   "toast_ignored_count": "{count} Dateien ignoriert",
   "toast_scan_failed": "Scannen fehlgeschlagen. Bitte Ordner prüfen.",
   "toast_preferences_saved": "Einstellungen gespeichert.",

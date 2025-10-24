@@ -36,6 +36,7 @@
   "settings_ignore_enabled_hint": "Skip matching files during scanning and packing.",
   "settings_ignore_patterns": "Ignore glob patterns",
   "settings_ignore_patterns_hint": "One pattern per line, evaluated relative to the selected folder.",
+  "badge_ignored_count": "ignored: {count}",
   "toast_ignored_count": "Ignored {count} files",
   "toast_scan_failed": "Scanning failed. Check the folder and try again.",
   "toast_preferences_saved": "Preferences saved.",
