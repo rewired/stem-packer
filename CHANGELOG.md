@@ -37,6 +37,8 @@ All notable changes to StemPacker will be documented in this file.
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 
 ### Fixed
+- Corrected the `execFile` wrapper typings so TypeScript accepts the promisified
+  signature without requiring a callback argument.
 - Replaced direct imports of `node:child_process/promises` in the pack engine with a
   `child_process` + `util.promisify` wrapper so Electron runtimes missing the
   built-in promises module no longer fail during startup.
