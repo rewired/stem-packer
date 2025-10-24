@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Added an ffprobe-backed `probeAudio` helper that extracts channel counts, masks, and canonical labels for multichannel
+  sources.
 - Implemented the desktop app shell with header, About modal, drag-and-drop input, and audio file table.
 - Wired IPC folder selection, scanning, and preference persistence with JSON storage under the user data path.
 - Introduced configurable packing preferences (target size, format, output directory, ignore rules) with localized UI strings.
