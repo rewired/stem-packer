@@ -7,6 +7,7 @@ export interface EstimateResult {
   sevenZipVolumeCount: number;
   consideredFiles: AudioFileItem[];
   splitCount: number;
+  splitCandidateCount: number;
 }
 
 const MONO_SPLIT_OVERHEAD_BYTES = 4096;
@@ -16,15 +17,7 @@ function clampTargetSize(targetSizeMB: number): number {
   return Math.max(1, targetSizeMB);
 }
 
-function shouldApplyMonoSplit(
-  file: AudioFileItem,
-  preferences: Preferences,
-  targetBytes: number
-): boolean {
-  if (!preferences.auto_split_multichannel_to_mono) {
-    return false;
-  }
-
+function isMonoSplitCandidate(file: AudioFileItem, targetBytes: number): boolean {
   const channelCount = Math.max(1, file.channels ?? 1);
   if (channelCount <= 1) {
     return false;
@@ -37,6 +30,25 @@ function shouldApplyMonoSplit(
   return LOSSLESS_SPLIT_EXTENSIONS.has(file.extension.toLowerCase());
 }
 
+function shouldApplyMonoSplit(
+  file: AudioFileItem,
+  preferences: Preferences,
+  targetBytes: number
+): boolean {
+  if (!preferences.auto_split_multichannel_to_mono) {
+    return false;
+  }
+
+  if (!isMonoSplitCandidate(file, targetBytes)) {
+    return false;
+  }
+
+  const channelCount = Math.max(1, file.channels ?? 1);
+  const baseSize = Math.ceil(file.sizeBytes / channelCount) + MONO_SPLIT_OVERHEAD_BYTES;
+
+  return baseSize <= targetBytes;
+}
+
 interface EstimatedItem {
   sizeBytes: number;
   key: string;
@@ -46,11 +58,17 @@ function planItems(
   files: AudioFileItem[],
   preferences: Preferences,
   targetBytes: number
-): { items: EstimatedItem[]; splitCount: number } {
+): { items: EstimatedItem[]; splitCount: number; splitCandidateCount: number } {
   const items: EstimatedItem[] = [];
   let splitCount = 0;
+  let splitCandidateCount = 0;
 
   for (const file of files) {
+    const isCandidate = isMonoSplitCandidate(file, targetBytes);
+    if (isCandidate) {
+      splitCandidateCount += 1;
+    }
+
     if (shouldApplyMonoSplit(file, preferences, targetBytes)) {
       const channelCount = Math.max(1, file.channels ?? 1);
       const baseSize = Math.ceil(file.sizeBytes / channelCount);
@@ -72,7 +90,7 @@ function planItems(
     });
   }
 
-  return { items, splitCount };
+  return { items, splitCount, splitCandidateCount };
 }
 
 function bestFitBinCount(items: EstimatedItem[], capacity: number): number {
@@ -117,7 +135,11 @@ export function estimateArchiveCount(
   const shouldIgnore = createIgnoreMatcher(preferences.ignore_enabled, preferences.ignore_globs);
   const consideredFiles = files.filter((file) => !shouldIgnore(file.relativePath));
   const targetBytes = clampTargetSize(preferences.targetSizeMB) * 1024 * 1024;
-  const { items, splitCount } = planItems(consideredFiles, preferences, targetBytes);
+  const { items, splitCount, splitCandidateCount } = planItems(
+    consideredFiles,
+    preferences,
+    targetBytes
+  );
   const totalBytes = items.reduce((sum, item) => sum + item.sizeBytes, 0);
   const zipArchiveCount = bestFitBinCount(items, targetBytes);
   const sevenZipVolumeCount =
@@ -128,6 +150,7 @@ export function estimateArchiveCount(
     zipArchiveCount,
     sevenZipVolumeCount,
     consideredFiles,
-    splitCount
+    splitCount,
+    splitCandidateCount
   };
 }

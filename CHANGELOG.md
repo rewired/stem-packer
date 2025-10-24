@@ -20,6 +20,7 @@ All notable changes to StemPacker will be documented in this file.
 - Added a 7z volume pack engine that stages metadata once, enforces ignore rules, resolves bundled/system binaries, parses progress output, and deletes orphaned `.7z.00N` parts after failures or cancellation.
 - Added a multichannel split planner that maps lossless surround stems to mono outputs and flags oversize cases requiring 7z volumes.
 - Implemented a lossless multichannel split executor that renders mono temp files via `ffmpeg`, tracks cleanup, and verifies naming + lifecycle through integration tests.
+- Introduced a multichannel split decision dialog that offers mono splits, 7z volumes, or cancellation with localized UI and flow tests.
 
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
