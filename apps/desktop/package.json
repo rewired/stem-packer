@@ -5,6 +5,7 @@
   "type": "module",
   "main": "dist/main.cjs",
   "scripts": {
+    "predev": "pnpm run build:deps",
     "dev": "concurrently \"pnpm dev:main\" \"pnpm dev:renderer\" \"pnpm dev:electron\"",
     "dev:main": "tsup --config tsup.config.ts --watch",
     "dev:renderer": "vite dev --host",
@@ -15,6 +16,7 @@
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "pnpm exec vitest run",
+    "build:deps": "pnpm --filter @stem-packer/i18n run build && pnpm --filter @stem-packer/pack-engine run build && pnpm --filter @stem-packer/ui run build",
     "package:mac": "pnpm run build && electron-builder --mac",
     "package:win": "pnpm run build && electron-builder --win",
     "package:linux": "pnpm run build && electron-builder --linux"
