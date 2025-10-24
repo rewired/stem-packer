@@ -12,6 +12,7 @@ describe('planMultichannelSplit', () => {
       format: 'wav',
       channels: 6,
       channelLabels: ['L', 'R', 'C', 'LFE', 'Ls', 'Rs'],
+      channelMapSource: 'mask',
       targetSizeMB: 50
     };
 
@@ -32,6 +33,7 @@ describe('planMultichannelSplit', () => {
     const expectedSize = Math.ceil(options.bytes / options.channels) + 4096;
     for (const entry of plan.outputs) {
       expect(entry.estimatedSizeBytes).toBe(expectedSize);
+      expect(entry.channelMapSource).toBe('mask');
     }
   });
 
@@ -42,6 +44,7 @@ describe('planMultichannelSplit', () => {
       format: 'flac',
       channels: 8,
       channelLabels: ['L', 'R', 'C', 'LFE', 'Ls', 'Rs', 'Lb', 'Rb'],
+      channelMapSource: 'mask',
       targetSizeMB: 8
     };
 

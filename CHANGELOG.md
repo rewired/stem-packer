@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Created pack metadata and INFO.txt builders that encode UTF-8/no-BOM payloads with channel provenance, split strategy,
+  and fixed English labels, alongside tests covering structure and localization guards.
 - Added an ffprobe-backed `probeAudio` helper that extracts channel counts, masks, and canonical labels for multichannel
   sources.
 - Implemented the desktop app shell with header, About modal, drag-and-drop input, and audio file table.

@@ -91,11 +91,15 @@ export interface SevenZipPackResult {
   files: PackCandidate[];
 }
 
+export type ChannelMapSource = 'mask' | 'fallback' | 'unknown';
+
 export interface MonoChannelSplitPlan {
   /** Zero-based index for the channel in the original multichannel source. */
   channelIndex: number;
   /** Canonical label (e.g. `L`, `R`, `LFE`) or fallback `chNN` string. */
   channelLabel: string;
+  /** Indicates where the channel label originated from (mask vs fallback). */
+  channelMapSource: ChannelMapSource;
   /** Relative path for the derived mono asset using forward slashes. */
   relativePath: string;
   /** Estimated byte size of the mono asset including container overhead. */
@@ -122,6 +126,8 @@ export interface PlanMultichannelSplitOptions {
   channels: number;
   /** Canonical labels per channel (length should match `channels`). */
   channelLabels: string[];
+  /** Source of the channel labeling data (mask-derived vs fallback). */
+  channelMapSource?: ChannelMapSource;
   /** Target size limit in megabytes. */
   targetSizeMB: number;
   /** Optional per-mono overhead to add when estimating derived sizes. */
@@ -135,6 +141,8 @@ export interface MonoSplitCandidate extends PackCandidate {
   channelIndex: number;
   /** Canonical channel label copied into this mono asset. */
   channelLabel: string;
+  /** Source of the channel labeling data (mask-derived vs fallback). */
+  channelMapSource: ChannelMapSource;
 }
 
 export interface ExecuteMultichannelSplitOptions {

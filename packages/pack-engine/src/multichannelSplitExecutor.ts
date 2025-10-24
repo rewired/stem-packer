@@ -94,6 +94,7 @@ async function buildCandidate(
     channelIndex: plan.channelIndex,
     channelLabel: plan.channelLabel,
     derivedFrom: options.sourceRelativePath,
+    channelMapSource: plan.channelMapSource,
   };
 }
 
