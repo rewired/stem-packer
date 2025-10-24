@@ -36,6 +36,10 @@ All notable changes to StemPacker will be documented in this file.
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 
+### Fixed
+- Normalized 7z spawn error handling so launch failures report a consistent "7z exited" message and still clean up orphaned
+  volume files across platforms.
+
 ## [0.1.0] - 2024-12-04
 ### Added
 - Initialized the StemPacker pnpm monorepo with Electron, Vite, React, and TypeScript foundations.

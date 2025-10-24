@@ -289,7 +289,9 @@ export async function pack7zVolumes(options: SevenZipPackOptions): Promise<Seven
 
     const exitCode: number = await new Promise((resolve, reject) => {
       child.once('error', (error) => {
-        reject(error);
+        const message =
+          error instanceof Error ? error.message : typeof error === 'string' ? error : JSON.stringify(error);
+        reject(new Error(`7z exited before starting: ${message}`));
       });
       child.once('close', (code) => {
         resolve(code ?? 0);
