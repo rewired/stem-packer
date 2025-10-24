@@ -61,3 +61,32 @@ export class AbortPackingError extends Error {
     this.name = 'AbortPackingError';
   }
 }
+
+export interface SevenZipProgress {
+  state: 'packing' | 'completed' | 'cancelled';
+  current: number;
+  total: number;
+  percent: number;
+  message: string;
+  currentArchive: string | null;
+}
+
+export interface SevenZipPackOptions {
+  files: PackCandidate[];
+  outputDir: string;
+  archiveBaseName: string;
+  targetSizeMB: number;
+  metadataEntries: MetadataEntry[];
+  ignoreGlobs?: string[];
+  onProgress?: (progress: SevenZipProgress) => void;
+  signal?: AbortSignal;
+  /** Optional override for the 7z binary path, useful for tests or custom distributions. */
+  sevenZipBinaryPath?: string;
+}
+
+export interface SevenZipPackResult {
+  outputPaths: string[];
+  archiveBase: string;
+  volumeSizeBytes: number;
+  files: PackCandidate[];
+}

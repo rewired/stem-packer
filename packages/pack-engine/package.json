@@ -16,12 +16,13 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "7zip-bin": "^5.2.0",
     "picomatch": "^4.0.2",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
-    "@types/picomatch": "^2.3.1",
     "@types/node": "^22.10.1",
+    "@types/picomatch": "^2.3.1",
     "@types/yazl": "^2.4.5",
     "eslint": "^9.15.0",
     "tslib": "^2.8.1",
