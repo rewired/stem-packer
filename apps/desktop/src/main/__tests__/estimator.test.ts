@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { estimateArchiveCount } from '../estimator';
+import { estimateArchiveCount, predictMonoSplitCandidates } from '../estimator';
 import { DEFAULT_PREFERENCES, type AudioFileItem } from '../../shared/preferences';
 
 const MB = 1024 * 1024;
@@ -91,5 +91,30 @@ describe('estimateArchiveCount', () => {
     expect(estimate.monoSplitTooLargeFiles.map((file) => file.relativePath)).toEqual([
       'orchestra.wav'
     ]);
+  });
+
+  it('predicts which files will be split into mono assets', () => {
+    const stereo = makeFile({
+      name: 'mix.wav',
+      relativePath: 'mix.wav',
+      sizeBytes: 12 * MB,
+      channels: 2
+    });
+    const smallStereo = makeFile({
+      name: 'small.wav',
+      relativePath: 'small.wav',
+      sizeBytes: 2 * MB,
+      channels: 2
+    });
+
+    const preferences = {
+      ...DEFAULT_PREFERENCES,
+      targetSizeMB: 8,
+      auto_split_multichannel_to_mono: true
+    };
+
+    const result = predictMonoSplitCandidates([stereo, smallStereo], preferences);
+
+    expect(result.map((file) => file.relativePath)).toEqual(['mix.wav']);
   });
 });

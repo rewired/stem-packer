@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Highlight ZIP mono-split candidates directly in the file table with predicted badges and
+  legend messaging sourced from the estimator.
 - Added renderer packing controls with localized start/cancel actions, live progress, and IPC-driven
   error handling, alongside Vitest coverage for the button flow and mock progress events.
 - Implemented cross-platform folder drag-and-drop with renderer drop-surface highlighting, IPC-backed

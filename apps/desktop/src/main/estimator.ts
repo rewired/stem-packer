@@ -52,11 +52,13 @@ function planItems(
   splitCount: number;
   splitCandidateCount: number;
   monoSplitTooLargeFiles: AudioFileItem[];
+  monoSplitPlannedFiles: AudioFileItem[];
 } {
   const items: EstimatedItem[] = [];
   let splitCount = 0;
   let splitCandidateCount = 0;
   const monoSplitTooLargeFiles: AudioFileItem[] = [];
+  const monoSplitPlannedFiles: AudioFileItem[] = [];
 
   for (const file of files) {
     const isCandidate = isMonoSplitCandidate(file, targetBytes);
@@ -68,6 +70,7 @@ function planItems(
       const { channelCount, estimatedSize } = calculateMonoSplitEstimate(file);
       if (estimatedSize <= targetBytes) {
         splitCount += channelCount;
+        monoSplitPlannedFiles.push(file);
 
         for (let channelIndex = 0; channelIndex < channelCount; channelIndex += 1) {
           items.push({
@@ -87,7 +90,7 @@ function planItems(
     });
   }
 
-  return { items, splitCount, splitCandidateCount, monoSplitTooLargeFiles };
+  return { items, splitCount, splitCandidateCount, monoSplitTooLargeFiles, monoSplitPlannedFiles };
 }
 
 function bestFitBinCount(items: EstimatedItem[], capacity: number): number {
@@ -132,7 +135,12 @@ export function estimateArchiveCount(
   const shouldIgnore = createIgnoreMatcher(preferences.ignore_enabled, preferences.ignore_globs);
   const consideredFiles = files.filter((file) => !shouldIgnore(file.relativePath));
   const targetBytes = clampTargetSize(preferences.targetSizeMB) * 1024 * 1024;
-  const { items, splitCount, splitCandidateCount, monoSplitTooLargeFiles } = planItems(
+  const {
+    items,
+    splitCount,
+    splitCandidateCount,
+    monoSplitTooLargeFiles,
+  } = planItems(
     consideredFiles,
     preferences,
     targetBytes
@@ -151,4 +159,15 @@ export function estimateArchiveCount(
     splitCandidateCount,
     monoSplitTooLargeFiles
   };
+}
+
+export function predictMonoSplitCandidates(
+  files: AudioFileItem[],
+  preferences: Preferences
+): AudioFileItem[] {
+  const shouldIgnore = createIgnoreMatcher(preferences.ignore_enabled, preferences.ignore_globs);
+  const consideredFiles = files.filter((file) => !shouldIgnore(file.relativePath));
+  const targetBytes = clampTargetSize(preferences.targetSizeMB) * 1024 * 1024;
+  const { monoSplitPlannedFiles } = planItems(consideredFiles, preferences, targetBytes);
+  return monoSplitPlannedFiles;
 }

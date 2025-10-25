@@ -17,6 +17,7 @@ interface PackCardProps {
   labelledBy: string;
   files: AudioFileItem[];
   monoSplitTooLargeFiles: AudioFileItem[];
+  monoSplitCandidates: AudioFileItem[];
   isScanning: boolean;
   onFolderDrop: (folderPath: string) => Promise<void> | void;
   onDropError: (reason: DroppedFolderResolutionError) => Promise<void> | void;
@@ -47,6 +48,7 @@ export function PackCard({
   labelledBy,
   files,
   monoSplitTooLargeFiles,
+  monoSplitCandidates,
   isScanning,
   onFolderDrop,
   onDropError,
@@ -79,6 +81,7 @@ export function PackCard({
   const showSelectionControls = !hasSelection;
   const totalSize = calculateTotalSize(files);
   const showMonoSplitWarning = isZipFormat && monoSplitTooLargeFiles.length > 0;
+  const showMonoSplitLegend = isZipFormat && monoSplitCandidates.length > 0;
   const chooseButtonPlaceholder = (
     <div className="btn btn-primary invisible select-none" aria-hidden="true">
       <Icon name="folder_open" className="text-2xl" />
@@ -179,6 +182,8 @@ export function PackCard({
             <FilesTable
               files={files}
               warningFiles={showMonoSplitWarning ? monoSplitTooLargeFiles : undefined}
+              monoSplitCandidates={isZipFormat ? monoSplitCandidates : undefined}
+              showMonoSplitLegend={showMonoSplitLegend}
               showEmptyState={showEmptyState}
               emptyStateKey="no_supported_audio_in_folder"
             />
