@@ -14,6 +14,11 @@ import { DEFAULT_INFO_TEXT_FORM, type InfoTextFormState } from '../shared/info';
 import type { CollisionCheckPayload, CollisionKind } from '../shared/collisions';
 import { estimateArchiveCount } from '../main/estimator';
 import { useToast } from './hooks/useToast';
+import type { PackingProgressEvent, PackingResult } from '../shared/packing';
+
+type PackingStatus = 'idle' | 'packing' | 'completed' | 'cancelled' | 'error';
+
+type PackingErrorPayload = { name: string; message: string } | null;
 
 const sizeKeys = ['file_size_bytes', 'file_size_kb', 'file_size_mb', 'file_size_gb'] as const;
 
@@ -411,7 +416,17 @@ function PackCard({
   ignoredCount,
   metadataFields,
   onMetadataChange,
-  onArtistBlur
+  onArtistBlur,
+  onStartPacking,
+  canStartPacking,
+  packingStatus,
+  packingProgress,
+  onCancelPacking,
+  isCancellingPacking,
+  packingError,
+  onDismissPackingError,
+  lastPackResult,
+  onDismissPackingNotice
 }: {
   active: boolean;
   panelId: string;
@@ -425,8 +440,24 @@ function PackCard({
   metadataFields: InfoTextFormState;
   onMetadataChange: (update: Partial<InfoTextFormState>) => void;
   onArtistBlur: () => void | Promise<void>;
+  onStartPacking: () => Promise<void> | void;
+  canStartPacking: boolean;
+  packingStatus: PackingStatus;
+  packingProgress: PackingProgressEvent | null;
+  onCancelPacking: () => Promise<void> | void;
+  isCancellingPacking: boolean;
+  packingError: PackingErrorPayload;
+  onDismissPackingError: () => void;
+  lastPackResult: PackingResult | null;
+  onDismissPackingNotice: () => void;
 }) {
   const { t } = useTranslation();
+
+  const percentComplete = Math.round(packingProgress?.percent ?? 0);
+  const showProgress = packingStatus === 'packing';
+  const showSuccess = packingStatus === 'completed' && lastPackResult;
+  const showCancelled = packingStatus === 'cancelled';
+  const showError = packingStatus === 'error' && packingError;
 
   return (
     <section
@@ -471,6 +502,122 @@ function PackCard({
               onChange={onMetadataChange}
               onArtistBlur={onArtistBlur}
             />
+            <div className="flex justify-end">
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => {
+                  void onStartPacking();
+                }}
+                disabled={!canStartPacking}
+              >
+                <Icon name="inventory_2" className="text-2xl" />
+                <span>
+                  {packingStatus === 'packing'
+                    ? t('button_packing_active')
+                    : t('button_start_packing')}
+                </span>
+              </button>
+            </div>
+            {showProgress ? (
+              <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                  <div className="space-y-2">
+                    <p className="font-semibold">{t('packing_progress_title')}</p>
+                    <p className="text-sm text-base-content/80">
+                      {packingProgress?.message ?? t('packing_progress_waiting')}
+                    </p>
+                    <p className="text-xs text-base-content/60">
+                      {t('packing_progress_detail', {
+                        current: packingProgress?.current ?? 0,
+                        total: packingProgress?.total ?? 0
+                      })}
+                    </p>
+                    {packingProgress?.currentArchive ? (
+                      <p className="text-xs text-base-content/60">
+                        {t('packing_progress_current_archive', {
+                          name: packingProgress.currentArchive
+                        })}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex w-full flex-col gap-3 md:w-72">
+                    <progress
+                      className="progress progress-primary w-full"
+                      value={percentComplete}
+                      max={100}
+                      aria-label={t('packing_progress_label')}
+                    />
+                    <div className="flex items-center justify-between text-xs text-base-content/70">
+                      <span>{t('packing_progress_percent', { percent: percentComplete })}</span>
+                      <button
+                        className="btn btn-outline btn-sm"
+                        type="button"
+                        onClick={() => {
+                          void onCancelPacking();
+                        }}
+                        disabled={isCancellingPacking}
+                      >
+                        <Icon name="cancel" className="text-lg" />
+                        <span>
+                          {isCancellingPacking
+                            ? t('button_cancelling_packing')
+                            : t('button_cancel_packing')}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {showSuccess && lastPackResult ? (
+              <div className="alert alert-success">
+                <Icon name="check_circle" className="text-xl" />
+                <div className="flex flex-col text-sm">
+                  <span>
+                    {t('packing_success_message', {
+                      count: lastPackResult.outputPaths.length
+                    })}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={onDismissPackingNotice}
+                >
+                  {t('button_close')}
+                </button>
+              </div>
+            ) : null}
+            {showCancelled ? (
+              <div className="alert alert-info">
+                <Icon name="info" className="text-xl" />
+                <span className="text-sm">{t('packing_cancelled_message')}</span>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={onDismissPackingNotice}
+                >
+                  {t('button_close')}
+                </button>
+              </div>
+            ) : null}
+            {showError && packingError ? (
+              <div className="alert alert-error">
+                <Icon name="error" className="text-xl" />
+                <div className="flex flex-col text-sm">
+                  <span>{t('packing_error_message')}</span>
+                  <span className="text-xs text-base-content/70">{packingError.message}</span>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={onDismissPackingError}
+                >
+                  {t('button_close')}
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -676,6 +823,11 @@ function AppContent() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'pack' | 'preferences'>('pack');
   const [metadataFields, setMetadataFields] = useState<InfoTextFormState>(DEFAULT_INFO_TEXT_FORM);
+  const [packingStatus, setPackingStatus] = useState<PackingStatus>('idle');
+  const [packingProgress, setPackingProgress] = useState<PackingProgressEvent | null>(null);
+  const [packingError, setPackingError] = useState<PackingErrorPayload>(null);
+  const [lastPackResult, setLastPackResult] = useState<PackingResult | null>(null);
+  const [isCancellingPacking, setIsCancellingPacking] = useState(false);
   const { toast, showToast } = useToast();
 
   useEffect(() => {
@@ -694,6 +846,60 @@ function AppContent() {
       console.error('Failed to initialize application', error);
     });
   }, []);
+
+  useEffect(() => {
+    const unsubscribeProgress = window.stemPacker.onPackingProgress((event) => {
+      setPackingProgress(event);
+      if (event.state === 'packing') {
+        setPackingStatus('packing');
+      } else if (event.state === 'completed') {
+        setPackingStatus('completed');
+      } else if (event.state === 'cancelled') {
+        setPackingStatus('cancelled');
+        setLastPackResult(null);
+        setIsCancellingPacking(false);
+        showToast(t('toast_packing_cancelled'));
+      }
+
+      if (event.state !== 'packing') {
+        setIsCancellingPacking(false);
+      }
+    });
+
+    const unsubscribeResult = window.stemPacker.onPackingResult((result) => {
+      setLastPackResult(result);
+      setPackingStatus('completed');
+      setIsCancellingPacking(false);
+      setPackingProgress((current) =>
+        current
+          ? { ...current, state: 'completed', percent: 100 }
+          : {
+              state: 'completed',
+              current: result.outputPaths.length,
+              total: result.outputPaths.length,
+              percent: 100,
+              message: t('packing_progress_waiting'),
+              currentArchive: null
+            }
+      );
+      showToast(t('toast_packing_success', { count: result.outputPaths.length }));
+    });
+
+    const unsubscribeError = window.stemPacker.onPackingError((error) => {
+      setPackingError(error);
+      setPackingStatus('error');
+      setPackingProgress(null);
+      setLastPackResult(null);
+      setIsCancellingPacking(false);
+      showToast(t('toast_packing_failed'));
+    });
+
+    return () => {
+      unsubscribeProgress();
+      unsubscribeResult();
+      unsubscribeError();
+    };
+  }, [showToast, t]);
 
   const handleMetadataChange = (update: Partial<InfoTextFormState>) => {
     setMetadataFields((current) => ({ ...current, ...update }));
@@ -717,6 +923,11 @@ function AppContent() {
     setIgnoredCount(0);
     setCollisionPrompt(null);
     setSplitDecisionPrompt(null);
+    setPackingStatus('idle');
+    setPackingProgress(null);
+    setPackingError(null);
+    setLastPackResult(null);
+    setIsCancellingPacking(false);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
       setFiles(result.files);
@@ -834,6 +1045,11 @@ function AppContent() {
     setFiles([]);
     setSelectedFolder(null);
     setIgnoredCount(0);
+    setPackingStatus('idle');
+    setPackingProgress(null);
+    setPackingError(null);
+    setLastPackResult(null);
+    setIsCancellingPacking(false);
     showToast(t('toast_action_cancelled'));
   };
 
@@ -883,6 +1099,79 @@ function AppContent() {
     await resetToIdle();
   };
 
+  const handleStartPacking = async () => {
+    if (!selectedFolder || files.length === 0 || !preferences) {
+      showToast(t('toast_packing_unavailable'));
+      return;
+    }
+
+    setPackingStatus('packing');
+    setPackingError(null);
+    setLastPackResult(null);
+    setIsCancellingPacking(false);
+    setPackingProgress({
+      state: 'packing',
+      current: 0,
+      total: files.length,
+      percent: 0,
+      message: t('packing_progress_waiting'),
+      currentArchive: null
+    });
+
+    try {
+      await window.stemPacker.startPacking({
+        folderPath: selectedFolder,
+        files,
+        info: { ...metadataFields },
+        artist: metadataFields.artist
+      });
+    } catch (error) {
+      console.error('Failed to start packing', error);
+      const err = error as Error;
+      setPackingStatus('error');
+      setPackingError({
+        name: err?.name ?? 'Error',
+        message: err?.message ?? String(error)
+      });
+      setPackingProgress(null);
+      setIsCancellingPacking(false);
+      showToast(t('toast_packing_failed'));
+    }
+  };
+
+  const handleCancelPacking = async () => {
+    setIsCancellingPacking(true);
+    try {
+      const cancelled = await window.stemPacker.cancelPacking();
+      if (!cancelled) {
+        showToast(t('toast_packing_cancel_failed'));
+      }
+    } catch (error) {
+      console.error('Failed to cancel packing', error);
+      showToast(t('toast_packing_cancel_failed'));
+    } finally {
+      setIsCancellingPacking(false);
+    }
+  };
+
+  const handleDismissPackingNotice = () => {
+    setPackingStatus('idle');
+    setLastPackResult(null);
+    setPackingProgress(null);
+  };
+
+  const handleDismissPackingError = () => {
+    setPackingError(null);
+    setPackingStatus('idle');
+  };
+
+  const canStartPacking =
+    files.length > 0 &&
+    Boolean(selectedFolder) &&
+    Boolean(preferences) &&
+    !isScanning &&
+    packingStatus !== 'packing';
+
   return (
     <main className="min-h-screen bg-base-300 text-base-content">
       <section className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-12">
@@ -926,6 +1215,16 @@ function AppContent() {
               metadataFields={metadataFields}
               onMetadataChange={handleMetadataChange}
               onArtistBlur={persistArtist}
+              onStartPacking={handleStartPacking}
+              canStartPacking={canStartPacking}
+              packingStatus={packingStatus}
+              packingProgress={packingProgress}
+              onCancelPacking={handleCancelPacking}
+              isCancellingPacking={isCancellingPacking}
+              packingError={packingError}
+              onDismissPackingError={handleDismissPackingError}
+              lastPackResult={lastPackResult}
+              onDismissPackingNotice={handleDismissPackingNotice}
             />
             <PreferencesCard
               active={activeTab === 'preferences'}
