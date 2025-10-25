@@ -42,7 +42,7 @@ export interface ZipPackOptions {
   targetSizeMB: number;
   /** Additional entries that must be injected into every archive. */
   metadataEntries: MetadataEntry[];
-  /** Optional glob patterns that should be excluded when packing. */
+  /** Optional ignore patterns that should be excluded when packing. */
   ignoreGlobs?: string[];
   /** Progress callback that mirrors the IPC payload shape. */
   onProgress?: (progress: ZipProgress) => void;
