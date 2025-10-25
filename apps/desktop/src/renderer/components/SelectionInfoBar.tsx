@@ -28,7 +28,7 @@ export function SelectionInfoBar({
       <div className="flex items-center gap-1">
         <span className="text-base-content/70">{t('lbl_folder')}:</span>
         <span
-          className="font-medium text-base-content"
+          className="inline-block max-w-[40ch] truncate font-medium text-base-content"
           title={folderPath ?? undefined}
         >
           {truncatedPath ?? t('selected_folder_empty')}
@@ -42,7 +42,7 @@ export function SelectionInfoBar({
             }
           }}
           disabled={!hasFolder}
-          aria-label={t('button_copy_folder_path')}
+          aria-label={t('btn_copy')}
         >
           <Icon name="content_copy" className="text-base" />
         </button>

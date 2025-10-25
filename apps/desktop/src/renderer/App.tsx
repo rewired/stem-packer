@@ -544,7 +544,7 @@ function AppContent() {
       }
 
       await navigator.clipboard.writeText(selectedFolder);
-      showToast(t('toast_folder_path_copied'), 'success');
+      showToast(t('copied_to_clipboard'), 'success');
     } catch (error) {
       console.error('Failed to copy folder path', error);
       showToast(t('toast_folder_path_copy_failed'), 'error');
