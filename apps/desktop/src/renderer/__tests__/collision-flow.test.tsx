@@ -30,7 +30,8 @@ const scanResult = {
       sizeBytes: 1_024,
       fullPath: '/projects/session/Kick.wav'
     }
-  ]
+  ],
+  monoSplitTooLargeFiles: []
 };
 
 describe('overwrite / abort flow', () => {
