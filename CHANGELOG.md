@@ -39,6 +39,11 @@ All notable changes to StemPacker will be documented in this file.
 - Introduced a multichannel split decision dialog that offers mono splits, 7z volumes, or cancellation with localized UI and flow tests.
 
 ### Changed
+- Broke the renderer `App.tsx` into dedicated components, hooks, and utilities so packing progress,
+  dialogs, metadata forms, and drag-and-drop helpers can evolve independently with refreshed
+  Vitest coverage for the drop path resolver.
+- Restored the default ignore glob list in shared preferences to align scans with documented
+  defaults and keep integration tests stable.
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 - Stopped persisting the last scanned input directory so aborting collision or split prompts no longer mutates saved preferences.
 - Moved the renderer pack workflow and preferences form into localized DaisyUI tabs with updated layout coverage.

@@ -57,6 +57,15 @@ export const DEFAULT_PREFERENCES: Preferences = {
   outputDir: '',
   auto_split_multichannel_to_mono: false,
   ignore_enabled: true,
-  ignore_globs: []
+  ignore_globs: [
+    '**/.DS_Store',
+    '**/Thumbs.db',
+    '**/~*',
+    '**/*.tmp',
+    '**/*.bak',
+    '**/.git/**',
+    '**/*.cue',
+    '**/*.m3u*'
+  ]
 };
 
