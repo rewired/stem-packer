@@ -44,6 +44,7 @@ All notable changes to StemPacker will be documented in this file.
 - Moved the renderer pack workflow and preferences form into localized DaisyUI tabs with updated layout coverage.
 - Removed the default ignore glob list so audio scans depend solely on the configured extensions when selecting candidates.
 - Retitled the ignore-pattern preference label to remove "glob" terminology from the UI.
+- Tightened the metadata form styling by switching inputs, textarea, select, and auto-split toggle to DaisyUI small variants.
 
 ### Fixed
 - Resolved drag-and-drop folder detection so nested file drops compute their root directory and

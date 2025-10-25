@@ -442,7 +442,7 @@ function MetadataForm({
           </div>
           <input
             type="text"
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={fields.title}
             onChange={(event) => onChange({ title: event.target.value })}
           />
@@ -453,7 +453,7 @@ function MetadataForm({
           </div>
           <input
             type="text"
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={fields.artist}
             onChange={(event) => onChange({ artist: event.target.value })}
             onBlur={handleArtistBlur}
@@ -465,7 +465,7 @@ function MetadataForm({
           </div>
           <input
             type="text"
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={fields.album}
             onChange={(event) => onChange({ album: event.target.value })}
           />
@@ -476,7 +476,7 @@ function MetadataForm({
           </div>
           <input
             type="text"
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={fields.bpm}
             onChange={(event) => onChange({ bpm: event.target.value })}
           />
@@ -487,7 +487,7 @@ function MetadataForm({
           </div>
           <input
             type="text"
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={fields.key}
             onChange={(event) => onChange({ key: event.target.value })}
           />
@@ -498,7 +498,7 @@ function MetadataForm({
           </div>
           <input
             type="text"
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={fields.license}
             onChange={(event) => onChange({ license: event.target.value })}
           />
@@ -508,7 +508,7 @@ function MetadataForm({
             <span className="label-text">{t('metadata_field_attribution')}</span>
           </div>
           <textarea
-            className="textarea textarea-bordered h-24"
+            className="textarea textarea-bordered textarea-sm h-24"
             value={fields.attribution}
             onChange={(event) => onChange({ attribution: event.target.value })}
           />
@@ -567,7 +567,7 @@ function SettingsPanel({
             <span className="label-text">{t('settings_format')}</span>
           </div>
           <select
-            className="select select-bordered"
+            className="select select-bordered select-sm"
             value={preferences.format}
             onChange={(event) => handleChange('format', event.target.value as Preferences['format'])}
           >
@@ -595,7 +595,7 @@ function SettingsPanel({
         </div>
         <input
           type="checkbox"
-          className="toggle"
+          className="toggle toggle-sm"
           checked={preferences.auto_split_multichannel_to_mono}
           onChange={(event) =>
             handleChange('auto_split_multichannel_to_mono', event.target.checked)
