@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { estimateArchiveCount, predictMonoSplitCandidates } from '../estimator';
+import {
+  estimateArchiveCount,
+  predictExcessNonSplittables,
+  predictMonoSplitCandidates
+} from '../estimator';
 import { DEFAULT_PREFERENCES, type AudioFileItem } from '../../shared/preferences';
 
 const MB = 1024 * 1024;
@@ -39,6 +43,8 @@ describe('estimateArchiveCount', () => {
     expect(estimateB.splitCandidateCount).toBe(0);
     expect(estimateA.monoSplitTooLargeFiles).toHaveLength(0);
     expect(estimateB.monoSplitTooLargeFiles).toHaveLength(0);
+    expect(estimateA.nonSplittableExcesses).toHaveLength(0);
+    expect(estimateB.nonSplittableExcesses).toHaveLength(0);
   });
 
   it('accounts for multichannel mono splits when enabled', () => {
@@ -67,6 +73,10 @@ describe('estimateArchiveCount', () => {
     expect(withSplit.splitCandidateCount).toBe(1);
     expect(withoutSplit.monoSplitTooLargeFiles).toHaveLength(0);
     expect(withSplit.monoSplitTooLargeFiles).toHaveLength(0);
+    expect(withoutSplit.nonSplittableExcesses.map((item) => item.fileId)).toEqual([
+      'mix.wav'
+    ]);
+    expect(withSplit.nonSplittableExcesses).toHaveLength(0);
     expect(withSplit.totalBytes).toBeGreaterThan(withoutSplit.totalBytes);
     expect(withSplit.zipArchiveCount).toBeGreaterThanOrEqual(withoutSplit.zipArchiveCount);
     expect(withSplit.sevenZipVolumeCount).toBeGreaterThanOrEqual(withoutSplit.sevenZipVolumeCount);
@@ -89,6 +99,9 @@ describe('estimateArchiveCount', () => {
     expect(estimate.splitCandidateCount).toBe(1);
     expect(estimate.splitCount).toBe(0);
     expect(estimate.monoSplitTooLargeFiles.map((file) => file.relativePath)).toEqual([
+      'orchestra.wav'
+    ]);
+    expect(estimate.nonSplittableExcesses.map((item) => item.fileId)).toEqual([
       'orchestra.wav'
     ]);
   });
@@ -116,5 +129,77 @@ describe('estimateArchiveCount', () => {
     const result = predictMonoSplitCandidates([stereo, smallStereo], preferences);
 
     expect(result.map((file) => file.relativePath)).toEqual(['mix.wav']);
+  });
+});
+
+describe('predictExcessNonSplittables', () => {
+  it('classifies severity for files that cannot be split under the ZIP limit', () => {
+    const preferences = {
+      ...DEFAULT_PREFERENCES,
+      targetSizeMB: 10,
+      auto_split_multichannel_to_mono: true
+    };
+
+    const files = [
+      makeFile({
+        name: 'slightly-over.mp3',
+        relativePath: 'slightly-over.mp3',
+        extension: '.mp3',
+        sizeBytes: 10 * MB + 1024
+      }),
+      makeFile({
+        name: 'far-over.mp3',
+        relativePath: 'far-over.mp3',
+        extension: '.mp3',
+        sizeBytes: 13 * MB
+      }),
+      makeFile({
+        name: 'split-ok.wav',
+        relativePath: 'split-ok.wav',
+        extension: '.wav',
+        sizeBytes: 12 * MB,
+        channels: 2
+      }),
+      makeFile({
+        name: 'split-too-large.wav',
+        relativePath: 'split-too-large.wav',
+        extension: '.wav',
+        sizeBytes: 24 * MB,
+        channels: 2
+      })
+    ];
+
+    const predictions = predictExcessNonSplittables(files, preferences);
+
+    expect(predictions).toHaveLength(3);
+    expect(predictions.map((item) => [item.fileId, item.severity])).toEqual([
+      ['slightly-over.mp3', 'warning'],
+      ['far-over.mp3', 'critical'],
+      ['split-too-large.wav', 'critical']
+    ]);
+  });
+
+  it('flags lossless candidates when auto split is disabled', () => {
+    const preferences = {
+      ...DEFAULT_PREFERENCES,
+      targetSizeMB: 10,
+      auto_split_multichannel_to_mono: false
+    };
+
+    const file = makeFile({
+      name: 'stereo.wav',
+      relativePath: 'stereo.wav',
+      extension: '.wav',
+      sizeBytes: 12 * MB,
+      channels: 2
+    });
+
+    const predictions = predictExcessNonSplittables([file], preferences);
+
+    expect(predictions).toHaveLength(1);
+    expect(predictions[0]).toMatchObject({
+      fileId: 'stereo.wav',
+      severity: 'critical'
+    });
   });
 });

@@ -1,3 +1,4 @@
+import { ZIP_EXCESS_CRITICAL_RATIO } from '@stem-packer/shared/config/packingThresholds';
 import { type AudioFileItem, type Preferences } from '../shared/preferences';
 import { createIgnoreMatcher } from './ignore';
 
@@ -9,10 +10,28 @@ export interface EstimateResult {
   splitCount: number;
   splitCandidateCount: number;
   monoSplitTooLargeFiles: AudioFileItem[];
+  nonSplittableExcesses: ExcessNonSplittablePrediction[];
 }
 
 const MONO_SPLIT_OVERHEAD_BYTES = 4096;
 const LOSSLESS_SPLIT_EXTENSIONS = new Set(['.wav', '.wave', '.aif', '.aiff', '.flac']);
+
+export type ExcessSeverity = 'warning' | 'critical';
+
+export interface ExcessNonSplittablePrediction {
+  fileId: string;
+  bytes: number;
+  severity: ExcessSeverity;
+}
+
+function classifyExcessSeverity(bytes: number, limit: number): ExcessSeverity {
+  if (limit <= 0) {
+    return 'critical';
+  }
+
+  const ratio = bytes / limit;
+  return ratio >= ZIP_EXCESS_CRITICAL_RATIO ? 'critical' : 'warning';
+}
 
 function clampTargetSize(targetSizeMB: number): number {
   return Math.max(1, targetSizeMB);
@@ -41,6 +60,50 @@ function calculateMonoSplitEstimate(file: AudioFileItem) {
   const estimatedSize = Math.ceil(file.sizeBytes / channelCount) + MONO_SPLIT_OVERHEAD_BYTES;
 
   return { channelCount, estimatedSize };
+}
+
+export function predictExcessNonSplittables(
+  files: AudioFileItem[],
+  preferences: Preferences
+): ExcessNonSplittablePrediction[] {
+  const shouldIgnore = createIgnoreMatcher(
+    preferences.ignore_enabled,
+    preferences.ignore_globs
+  );
+  const consideredFiles = files.filter((file) => !shouldIgnore(file.relativePath));
+  if (consideredFiles.length === 0) {
+    return [];
+  }
+
+  const targetBytes = clampTargetSize(preferences.targetSizeMB) * 1024 * 1024;
+  if (targetBytes <= 0) {
+    return [];
+  }
+
+  const predictions: ExcessNonSplittablePrediction[] = [];
+
+  for (const file of consideredFiles) {
+    if (file.sizeBytes <= targetBytes) {
+      continue;
+    }
+
+    const isCandidate = isMonoSplitCandidate(file, targetBytes);
+
+    if (isCandidate && preferences.auto_split_multichannel_to_mono) {
+      const { estimatedSize } = calculateMonoSplitEstimate(file);
+      if (estimatedSize <= targetBytes) {
+        continue;
+      }
+    }
+
+    predictions.push({
+      fileId: file.relativePath,
+      bytes: file.sizeBytes,
+      severity: classifyExcessSeverity(file.sizeBytes, targetBytes)
+    });
+  }
+
+  return predictions;
 }
 
 function planItems(
@@ -145,6 +208,7 @@ export function estimateArchiveCount(
     preferences,
     targetBytes
   );
+  const nonSplittableExcesses = predictExcessNonSplittables(consideredFiles, preferences);
   const totalBytes = items.reduce((sum, item) => sum + item.sizeBytes, 0);
   const zipArchiveCount = bestFitBinCount(items, targetBytes);
   const sevenZipVolumeCount =
@@ -157,7 +221,8 @@ export function estimateArchiveCount(
     consideredFiles,
     splitCount,
     splitCandidateCount,
-    monoSplitTooLargeFiles
+    monoSplitTooLargeFiles,
+    nonSplittableExcesses
   };
 }
 

@@ -3,6 +3,7 @@ import type { AudioFileItem } from '../../shared/preferences';
 import type { PackingProgressEvent, PackingResult } from '../../shared/packing';
 import type { InfoTextFormState } from '../../shared/info';
 import type { DroppedFolderResolutionError } from '../../shared/drop';
+import type { ExcessNonSplittablePrediction } from '../../main/estimator';
 import { DropSurface } from './DropSurface';
 import { FilesTable } from './FilesTable';
 import { MetadataForm } from './MetadataForm';
@@ -18,6 +19,7 @@ interface PackCardProps {
   files: AudioFileItem[];
   monoSplitTooLargeFiles: AudioFileItem[];
   monoSplitCandidates: AudioFileItem[];
+  nonSplittableWarnings: Map<string, ExcessNonSplittablePrediction>;
   isScanning: boolean;
   onFolderDrop: (folderPath: string) => Promise<void> | void;
   onDropError: (reason: DroppedFolderResolutionError) => Promise<void> | void;
@@ -49,6 +51,7 @@ export function PackCard({
   files,
   monoSplitTooLargeFiles,
   monoSplitCandidates,
+  nonSplittableWarnings,
   isScanning,
   onFolderDrop,
   onDropError,
@@ -181,8 +184,8 @@ export function PackCard({
             </div>
             <FilesTable
               files={files}
-              warningFiles={showMonoSplitWarning ? monoSplitTooLargeFiles : undefined}
               monoSplitCandidates={isZipFormat ? monoSplitCandidates : undefined}
+              nonSplittableWarnings={nonSplittableWarnings}
               showMonoSplitLegend={showMonoSplitLegend}
               showEmptyState={showEmptyState}
               emptyStateKey="no_supported_audio_in_folder"
