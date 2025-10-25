@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Displayed selection paths with a middle ellipsis and copy shortcut that surfaces a clipboard
+  toast.
 - Displayed inline pack progress directly on the toolbar button with a live percent label,
   compact progress bar, and disabled controls while packing is running.
 - Introduced a compact selection info bar beneath the toolbar with a copyable folder path,
