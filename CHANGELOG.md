@@ -46,6 +46,8 @@ All notable changes to StemPacker will be documented in this file.
 - Retitled the ignore-pattern preference label to remove "glob" terminology from the UI.
 
 ### Fixed
+- Extracted dropped folder paths from URI lists so drag-and-drop scanning reliably receives
+  directories across supported desktop platforms.
 - Prevented dropped files from navigating the Electron window so the drag-and-drop importer
   consistently receives folder paths.
 - Corrected the `execFile` wrapper typings so TypeScript accepts the promisified
