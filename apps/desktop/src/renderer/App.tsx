@@ -23,6 +23,7 @@ import { PackCard } from './components/PackCard';
 import { PreferencesCard } from './components/PreferencesCard';
 import { Header } from './components/Header';
 import { AboutModal } from './components/AboutModal';
+import { TopToolbar } from './components/TopToolbar';
 import { CollisionDialog, type CollisionPrompt } from './components/CollisionDialog';
 import { SplitDecisionDialog, type SplitDecisionPrompt } from './components/SplitDecisionDialog';
 import type { DroppedFolderResolutionError } from '../shared/drop';
@@ -342,6 +343,25 @@ function AppContent() {
     }
   };
 
+  const updatePreferencesQuickly = useCallback(
+    async (update: Partial<Preferences>) => {
+      if (!preferences) {
+        return;
+      }
+      const previous = preferences;
+      setPreferences({ ...preferences, ...update });
+      try {
+        const updated = await window.stemPacker.savePreferences(update);
+        setPreferences(updated);
+      } catch (error) {
+        console.error('Failed to update preferences from toolbar', error);
+        setPreferences(previous);
+        showToast(t('toast_preferences_failed'));
+      }
+    },
+    [preferences, showToast, t]
+  );
+
   const handleOverwriteCollisions = async () => {
     if (!collisionPrompt) {
       return;
@@ -424,6 +444,27 @@ function AppContent() {
   const handleSplitDecisionCancel = async () => {
     await resetToIdle();
   };
+
+  const handleToolbarTargetSizeChange = useCallback(
+    (value: number) => {
+      void updatePreferencesQuickly({ targetSizeMB: value });
+    },
+    [updatePreferencesQuickly]
+  );
+
+  const handleToolbarFormatChange = useCallback(
+    (nextFormat: Preferences['format']) => {
+      void updatePreferencesQuickly({ format: nextFormat });
+    },
+    [updatePreferencesQuickly]
+  );
+
+  const handleToolbarAutoSplitChange = useCallback(
+    (nextValue: boolean) => {
+      void updatePreferencesQuickly({ auto_split_multichannel_to_mono: nextValue });
+    },
+    [updatePreferencesQuickly]
+  );
 
   const handleStartPacking = async () => {
     if (!selectedFolder || files.length === 0 || !preferences) {
@@ -520,6 +561,7 @@ function AppContent() {
     Boolean(preferences) &&
     !isScanning &&
     packingStatus !== 'packing';
+  const isPacking = packingStatus === 'packing';
   const toastVariantClasses = {
     info: 'alert-info',
     success: 'alert-success',
@@ -540,6 +582,23 @@ function AppContent() {
     <main className="min-h-screen bg-base-300 text-base-content">
       <section className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
         <Header onAboutClick={() => setAboutOpen(true)} appInfo={appInfo} />
+        <TopToolbar
+          onChooseFolder={handleChooseFolder}
+          onPack={handleStartPacking}
+          onTargetSizeChange={handleToolbarTargetSizeChange}
+          onFormatChange={handleToolbarFormatChange}
+          onAutoSplitChange={handleToolbarAutoSplitChange}
+          targetSizeMB={activePreferences.targetSizeMB}
+          format={activePreferences.format}
+          autoSplit={activePreferences.auto_split_multichannel_to_mono}
+          disabled={isPacking}
+          canPack={canStartPacking}
+          isPacking={isPacking}
+          isScanning={isScanning}
+          isCancellingPacking={isCancellingPacking}
+          progress={packingProgress}
+          preferencesReady={Boolean(preferences)}
+        />
         <div className="flex flex-col gap-3">
           <div role="tablist" className="tabs tabs-boxed w-fit">
             <button
