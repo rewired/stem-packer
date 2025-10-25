@@ -60,8 +60,8 @@ All notable changes to StemPacker will be documented in this file.
   the content instead of leaving extra space.
 - Accepted drag-and-drop inputs at the window level and broadened parsing to cover `text/uri-list`,
   `text/plain`, and `DataTransfer.files` payloads so folder scans trigger regardless of drop target.
-- Deferred the empty-folder notice until after a completed scan and promoted the message to a
-  localized error toast when no supported audio files are found.
+- Tightened empty-folder handling so the empty state appears only after a scan finishes and the
+  toast reuses the shared `no_supported_audio_in_folder` microcopy.
 - Swapped the metadata license text input for a localized dropdown of supported license presets
   to guide `PACK-METADATA.json` values.
 - Exposed metadata form labels in the renderer UI and dropped redundant placeholders so the
