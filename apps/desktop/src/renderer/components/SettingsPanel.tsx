@@ -21,13 +21,13 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
 
   return (
     <form
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-3"
       onSubmit={async (event) => {
         event.preventDefault();
         await onSave();
       }}
     >
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <label className="form-control">
           <div className="label">
             <span className="label-text">{t('settings_target_size')}</span>

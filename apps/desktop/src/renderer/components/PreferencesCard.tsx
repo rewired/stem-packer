@@ -32,8 +32,8 @@ export function PreferencesCard({
       className="w-full"
     >
       <div className="card bg-base-200 shadow-xl">
-        <div className="card-body">
-          <h2 className="text-2xl font-semibold">{t('settings_title')}</h2>
+        <div className="card-body gap-3 p-4">
+          <h2 className="text-xl font-semibold">{t('settings_title')}</h2>
           <p className="text-sm text-base-content/70">{t('settings_description')}</p>
           <SettingsPanel
             preferences={preferences}

@@ -30,7 +30,7 @@ export function DropSurface({
 
   return (
     <div
-      className={`relative rounded-xl border-2 border-dashed p-10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${
+      className={`relative min-h-[140px] rounded-xl border-2 border-dashed p-6 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-base-200 ${
         isHighlighting ? 'border-primary bg-primary/10' : 'border-base-content/30'
       }`}
       onDragEnter={handleDragEnter}
@@ -41,7 +41,7 @@ export function DropSurface({
       data-drop-active={isHighlighting ? 'true' : 'false'}
       tabIndex={-1}
     >
-      <div className="flex flex-col items-center gap-3 text-center text-base-content/80">
+      <div className="flex flex-col items-center gap-2 text-center text-base-content/80">
         {children ?? (
           <>
             <Icon name="file_open" className="text-5xl" />
