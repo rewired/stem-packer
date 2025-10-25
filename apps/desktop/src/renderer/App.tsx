@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
 import { TranslationProvider, useTranslation } from './hooks/useTranslation';
-import type { Translator } from './hooks/useTranslation';
+import type { TranslationKey, Translator } from './hooks/useTranslation';
 import { Icon } from '@stem-packer/ui';
 import type {
   AppInfo,
@@ -162,6 +162,70 @@ function DragAndDropArea({
         <Icon name="file_open" className="text-5xl" />
         <p className="text-lg font-medium">{t('drag_drop_title')}</p>
         <p>{t('drag_drop_description')}</p>
+      </div>
+    </div>
+  );
+}
+
+function SelectionSummary({
+  folderPath,
+  fileCount,
+  totalSize,
+  ignoredCount
+}: {
+  folderPath: string;
+  fileCount: number;
+  totalSize: number;
+  ignoredCount: number;
+}) {
+  const { t } = useTranslation();
+  const formattedSize = formatBytes(totalSize, t);
+
+  const fileCountLabel =
+    fileCount === 1
+      ? t('selection_summary_files_one')
+      : t('selection_summary_files_other', { count: fileCount });
+
+  const ignoredLabel =
+    ignoredCount === 1
+      ? t('selection_summary_ignored_one')
+      : t('selection_summary_ignored_other', { count: ignoredCount });
+  const gridColumns =
+    ignoredCount > 0 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3';
+
+  return (
+    <div className="rounded-xl border border-base-content/30 bg-base-100/5 p-6 min-h-[12rem]">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
+            {t('selection_summary_title')}
+          </h3>
+          <span className="badge badge-outline badge-primary">{fileCountLabel}</span>
+        </div>
+        <dl className={`grid gap-4 ${gridColumns}`}>
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs uppercase text-base-content/60">
+              {t('selection_summary_folder')}
+            </dt>
+            <dd className="break-words text-sm font-medium text-base-content/80">
+              {folderPath}
+            </dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="text-xs uppercase text-base-content/60">
+              {t('selection_summary_size')}
+            </dt>
+            <dd className="text-sm font-medium text-base-content/80">{formattedSize}</dd>
+          </div>
+          {ignoredCount > 0 ? (
+            <div className="flex flex-col gap-1">
+              <dt className="text-xs uppercase text-base-content/60">
+                {t('selection_summary_ignored')}
+              </dt>
+              <dd className="text-sm font-medium text-base-content/80">{ignoredLabel}</dd>
+            </div>
+          ) : null}
+        </dl>
       </div>
     </div>
   );
@@ -440,7 +504,8 @@ function PackCard({
   packingError,
   onDismissPackingError,
   lastPackResult,
-  onDismissPackingNotice
+  onDismissPackingNotice,
+  onReset
 }: {
   active: boolean;
   panelId: string;
@@ -464,6 +529,7 @@ function PackCard({
   onDismissPackingError: () => void;
   lastPackResult: PackingResult | null;
   onDismissPackingNotice: () => void;
+  onReset: () => Promise<void> | void;
 }) {
   const { t } = useTranslation();
 
@@ -472,6 +538,23 @@ function PackCard({
   const showSuccess = packingStatus === 'completed' && lastPackResult;
   const showCancelled = packingStatus === 'cancelled';
   const showError = packingStatus === 'error' && packingError;
+  const hasFiles = files.length > 0;
+  const hasSelection = Boolean(selectedFolder) && hasFiles;
+  const showSelectionControls = !hasSelection;
+  const totalSize = files.reduce((sum, file) => sum + file.sizeBytes, 0);
+  const chooseButtonPlaceholder = (
+    <div className="btn btn-primary invisible select-none" aria-hidden="true">
+      <Icon name="folder_open" className="text-2xl" />
+      <span>{t('button_choose_folder')}</span>
+    </div>
+  );
+  const canReset =
+    hasSelection ||
+    ignoredCount > 0 ||
+    packingStatus !== 'idle' ||
+    packingProgress !== null ||
+    packingError !== null ||
+    lastPackResult !== null;
 
   return (
     <section
@@ -484,7 +567,16 @@ function PackCard({
       <div className="card bg-base-200 shadow-xl">
         <div className="card-body">
           <div className="flex flex-col gap-4">
-            <DragAndDropArea isActive={files.length > 0} onDrop={onDrop} disabled={isScanning} />
+            {showSelectionControls ? (
+              <DragAndDropArea isActive={false} onDrop={onDrop} disabled={isScanning} />
+            ) : selectedFolder ? (
+              <SelectionSummary
+                folderPath={selectedFolder}
+                fileCount={files.length}
+                totalSize={totalSize}
+                ignoredCount={ignoredCount}
+              />
+            ) : null}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
                 <span>
@@ -498,17 +590,21 @@ function PackCard({
                   </span>
                 ) : null}
               </div>
-              <button
-                className="btn btn-primary"
-                type="button"
-                onClick={() => {
-                  void onChooseFolder();
-                }}
-                disabled={isScanning}
-              >
-                <Icon name="folder_open" className="text-2xl" />
-                <span>{isScanning ? t('button_scanning') : t('button_choose_folder')}</span>
-              </button>
+              {showSelectionControls ? (
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => {
+                    void onChooseFolder();
+                  }}
+                  disabled={isScanning}
+                >
+                  <Icon name="folder_open" className="text-2xl" />
+                  <span>{isScanning ? t('button_scanning') : t('button_choose_folder')}</span>
+                </button>
+              ) : (
+                chooseButtonPlaceholder
+              )}
             </div>
             <FilesTable files={files} />
             <MetadataForm
@@ -516,7 +612,18 @@ function PackCard({
               onChange={onMetadataChange}
               onArtistBlur={onArtistBlur}
             />
-            <div className="flex justify-end">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                className="btn btn-outline"
+                type="button"
+                onClick={() => {
+                  void onReset();
+                }}
+                disabled={isScanning || packingStatus === 'packing' || !canReset}
+              >
+                <Icon name="restart_alt" className="text-2xl" />
+                <span>{t('button_reset')}</span>
+              </button>
               <button
                 className="btn btn-primary"
                 type="button"
@@ -960,8 +1067,16 @@ function AppContent() {
     setPackingError(null);
     setLastPackResult(null);
     setIsCancellingPacking(false);
+    setFiles([]);
+    setSelectedFolder(null);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
+      if (result.files.length === 0) {
+        await resetToIdle({ toastKey: 'toast_scan_empty' });
+        setIgnoredCount(result.ignoredCount);
+        return;
+      }
+
       setFiles(result.files);
       setSelectedFolder(result.folderPath);
       setIgnoredCount(result.ignoredCount);
@@ -1071,7 +1186,8 @@ function AppContent() {
     }
   };
 
-  const resetToIdle = async () => {
+  const resetToIdle = async (options: { toastKey?: TranslationKey | null } = {}) => {
+    const { toastKey } = options;
     setCollisionPrompt(null);
     setSplitDecisionPrompt(null);
     setFiles([]);
@@ -1082,7 +1198,12 @@ function AppContent() {
     setPackingError(null);
     setLastPackResult(null);
     setIsCancellingPacking(false);
-    showToast(t('toast_action_cancelled'));
+    setMetadataFields((current) => ({ ...DEFAULT_INFO_TEXT_FORM, artist: current.artist }));
+    if (toastKey === null) {
+      return;
+    }
+    const key = toastKey ?? 'toast_action_cancelled';
+    showToast(t(key));
   };
 
   const handleAbortCollisions = async () => {
@@ -1257,6 +1378,9 @@ function AppContent() {
               onDismissPackingError={handleDismissPackingError}
               lastPackResult={lastPackResult}
               onDismissPackingNotice={handleDismissPackingNotice}
+              onReset={() => {
+                void resetToIdle();
+              }}
             />
             <PreferencesCard
               active={activeTab === 'preferences'}
