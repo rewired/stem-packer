@@ -1072,8 +1072,12 @@ function AppContent() {
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
       if (result.files.length === 0) {
-        await resetToIdle({ toastKey: 'toast_scan_empty' });
-        setIgnoredCount(result.ignoredCount);
+        const warningMessage =
+          result.ignoredCount > 0
+            ? t('toast_scan_no_audio_with_ignored', { ignoredCount: result.ignoredCount })
+            : t('toast_scan_no_audio');
+        showToast(warningMessage);
+        await resetToIdle({ toastKey: null });
         return;
       }
 

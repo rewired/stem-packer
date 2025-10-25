@@ -46,6 +46,8 @@ All notable changes to StemPacker will be documented in this file.
 - Retitled the ignore-pattern preference label to remove "glob" terminology from the UI.
 
 ### Fixed
+- Show a warning toast and reset the selection when scans return no audio files so archive estimates
+  and prompts are skipped for empty folders.
 - Extracted dropped folder paths from URI lists so drag-and-drop scanning reliably receives
   directories across supported desktop platforms.
 - Prevented dropped files from navigating the Electron window so the drag-and-drop importer
