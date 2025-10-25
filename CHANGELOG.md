@@ -56,6 +56,8 @@ All notable changes to StemPacker will be documented in this file.
 - Tightened the metadata form styling by switching inputs, textarea, select, and auto-split toggle to DaisyUI small variants.
 
 ### Fixed
+- Resolved single-path drag-and-drop folder detection so trailing separators no longer
+  confuse the inferred scan directory.
 - Resolved drag-and-drop folder detection so nested file drops compute their root directory and
   trigger full scans during import.
 - Show a warning toast and reset the selection when scans return no audio files so archive estimates
