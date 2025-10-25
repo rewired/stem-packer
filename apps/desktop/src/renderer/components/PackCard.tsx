@@ -9,7 +9,6 @@ import { FilesTable } from './FilesTable';
 import { MetadataForm } from './MetadataForm';
 import { PackingProgress } from './PackingProgress';
 import { PackingStatusAlerts, type PackingStatus } from './PackingStatusAlerts';
-import { SelectionSummary, calculateTotalSize } from './SelectionSummary';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface PackCardProps {
@@ -82,7 +81,6 @@ export function PackCard({
   const hasFiles = files.length > 0;
   const hasSelection = Boolean(selectedFolder) && hasFiles;
   const showSelectionControls = !hasSelection;
-  const totalSize = calculateTotalSize(files);
   const showMonoSplitWarning = isZipFormat && monoSplitTooLargeFiles.length > 0;
   const showMonoSplitLegend = isZipFormat && monoSplitCandidates.length > 0;
   const chooseButtonPlaceholder = (
@@ -116,13 +114,6 @@ export function PackCard({
                 onFolderDrop={onFolderDrop}
                 onDropError={onDropError}
                 disabled={isScanning}
-              />
-            ) : selectedFolder ? (
-              <SelectionSummary
-                folderPath={selectedFolder}
-                fileCount={files.length}
-                totalSize={totalSize}
-                ignoredCount={ignoredCount}
               />
             ) : null}
             {showMonoSplitWarning ? (
