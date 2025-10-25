@@ -3,16 +3,7 @@ import type {
   MetadataEntry,
 } from '@stem-packer/pack-engine';
 import { INFO_TXT_LABELS } from './info-labels';
-
-export interface InfoTextFields {
-  title?: unknown;
-  artist?: unknown;
-  album?: unknown;
-  bpm?: unknown;
-  key?: unknown;
-  license?: unknown;
-  attribution?: unknown;
-}
+import type { InfoTextFields } from '../shared/info';
 
 export interface PackMetadataSource {
   relativePath: string;
