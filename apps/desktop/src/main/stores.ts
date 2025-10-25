@@ -18,6 +18,7 @@ export class PreferencesStore {
       const { lastInputDir: _legacyLastInputDir, ...rest } = parsed as Partial<Preferences> & {
         lastInputDir?: unknown;
       };
+      void _legacyLastInputDir;
       this.data = {
         ...DEFAULT_PREFERENCES,
         ...rest,

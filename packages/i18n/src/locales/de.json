@@ -8,6 +8,8 @@
   "button_scanning": "Scannen",
   "button_save_preferences": "Einstellungen speichern",
   "button_saving": "Speichern",
+  "tab_pack": "Stems packen",
+  "tab_preferences": "Einstellungen",
   "drag_drop_title": "Ordner mit Stems hier ablegen",
   "drag_drop_description": "Ziehen Sie einen Ordner hierher oder wählen Sie ihn unten aus.",
   "selected_folder_label": "Ausgewählter Ordner: {path}",

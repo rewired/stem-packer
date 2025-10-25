@@ -292,6 +292,117 @@ function SettingsPanel({
   );
 }
 
+function PackCard({
+  active,
+  panelId,
+  labelledBy,
+  files,
+  isScanning,
+  onDrop,
+  onChooseFolder,
+  selectedFolder,
+  ignoredCount
+}: {
+  active: boolean;
+  panelId: string;
+  labelledBy: string;
+  files: AudioFileItem[];
+  isScanning: boolean;
+  onDrop: (paths: string[]) => Promise<void> | void;
+  onChooseFolder: () => Promise<void>;
+  selectedFolder: string | null;
+  ignoredCount: number;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <section
+      id={panelId}
+      role="tabpanel"
+      aria-labelledby={labelledBy}
+      hidden={!active}
+      className="w-full"
+    >
+      <div className="card bg-base-200 shadow-xl">
+        <div className="card-body">
+          <div className="flex flex-col gap-4">
+            <DragAndDropArea isActive={files.length > 0} onDrop={onDrop} disabled={isScanning} />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+                <span>
+                  {selectedFolder
+                    ? t('selected_folder_label', { path: selectedFolder })
+                    : t('selected_folder_empty')}
+                </span>
+                {ignoredCount > 0 ? (
+                  <span className="badge badge-outline badge-secondary">
+                    {t('badge_ignored_count', { count: ignoredCount })}
+                  </span>
+                ) : null}
+              </div>
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => {
+                  void onChooseFolder();
+                }}
+                disabled={isScanning}
+              >
+                <Icon name="folder_open" className="text-2xl" />
+                <span>{isScanning ? t('button_scanning') : t('button_choose_folder')}</span>
+              </button>
+            </div>
+            <FilesTable files={files} />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PreferencesCard({
+  active,
+  panelId,
+  labelledBy,
+  preferences,
+  onChange,
+  onSave,
+  isSaving
+}: {
+  active: boolean;
+  panelId: string;
+  labelledBy: string;
+  preferences: Preferences | null;
+  onChange: (prefs: Preferences) => void;
+  onSave: () => Promise<void>;
+  isSaving: boolean;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <section
+      id={panelId}
+      role="tabpanel"
+      aria-labelledby={labelledBy}
+      hidden={!active}
+      className="w-full"
+    >
+      <div className="card bg-base-200 shadow-xl">
+        <div className="card-body">
+          <h2 className="text-2xl font-semibold">{t('settings_title')}</h2>
+          <p className="text-sm text-base-content/70">{t('settings_description')}</p>
+          <SettingsPanel
+            preferences={preferences}
+            onChange={onChange}
+            onSave={onSave}
+            isSaving={isSaving}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Header({ onAboutClick, appInfo }: { onAboutClick: () => void; appInfo: AppInfo | null }) {
   const { t } = useTranslation();
   return (
@@ -445,6 +556,7 @@ function AppContent() {
     null
   );
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pack' | 'preferences'>('pack');
   const { toast, showToast } = useToast();
 
   useEffect(() => {
@@ -460,7 +572,6 @@ function AppContent() {
     bootstrap().catch((error) => {
       console.error('Failed to initialize application', error);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const performScan = async (
@@ -642,44 +753,47 @@ function AppContent() {
     <main className="min-h-screen bg-base-300 text-base-content">
       <section className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-12">
         <Header onAboutClick={() => setAboutOpen(true)} appInfo={appInfo} />
-
-        <div className="card bg-base-200 shadow-xl">
-          <div className="card-body">
-            <div className="flex flex-col gap-4">
-              <DragAndDropArea isActive={files.length > 0} onDrop={handleDrop} disabled={isScanning} />
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
-                  <span>
-                    {selectedFolder
-                      ? t('selected_folder_label', { path: selectedFolder })
-                      : t('selected_folder_empty')}
-                  </span>
-                  {ignoredCount > 0 ? (
-                    <span className="badge badge-outline badge-secondary">
-                      {t('badge_ignored_count', { count: ignoredCount })}
-                    </span>
-                  ) : null}
-                </div>
-                <button
-                  className="btn btn-primary"
-                  type="button"
-                  onClick={handleChooseFolder}
-                  disabled={isScanning}
-                >
-                  <Icon name="folder_open" className="text-2xl" />
-                  <span>{isScanning ? t('button_scanning') : t('button_choose_folder')}</span>
-                </button>
-              </div>
-              <FilesTable files={files} />
-            </div>
+        <div className="flex flex-col gap-4">
+          <div role="tablist" className="tabs tabs-boxed w-fit">
+            <button
+              id="pack-tab"
+              role="tab"
+              type="button"
+              className={`tab ${activeTab === 'pack' ? 'tab-active' : ''}`}
+              aria-selected={activeTab === 'pack'}
+              aria-controls="pack-panel"
+              onClick={() => setActiveTab('pack')}
+            >
+              {t('tab_pack')}
+            </button>
+            <button
+              id="preferences-tab"
+              role="tab"
+              type="button"
+              className={`tab ${activeTab === 'preferences' ? 'tab-active' : ''}`}
+              aria-selected={activeTab === 'preferences'}
+              aria-controls="preferences-panel"
+              onClick={() => setActiveTab('preferences')}
+            >
+              {t('tab_preferences')}
+            </button>
           </div>
-        </div>
-
-        <div className="card bg-base-200 shadow-xl">
-          <div className="card-body">
-            <h2 className="text-2xl font-semibold">{t('settings_title')}</h2>
-            <p className="text-sm text-base-content/70">{t('settings_description')}</p>
-            <SettingsPanel
+          <div className="space-y-6">
+            <PackCard
+              active={activeTab === 'pack'}
+              panelId="pack-panel"
+              labelledBy="pack-tab"
+              files={files}
+              isScanning={isScanning}
+              onDrop={handleDrop}
+              onChooseFolder={handleChooseFolder}
+              selectedFolder={selectedFolder}
+              ignoredCount={ignoredCount}
+            />
+            <PreferencesCard
+              active={activeTab === 'preferences'}
+              panelId="preferences-panel"
+              labelledBy="preferences-tab"
               preferences={preferences}
               onChange={setPreferences}
               onSave={savePreferences}
