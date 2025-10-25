@@ -12,6 +12,7 @@ import type {
 } from '../shared/collisions';
 import type { ArtistProfile } from '../shared/artist';
 import type { PackingRequest, PackingResult, PackingProgressEvent } from '../shared/packing';
+import type { ResolveDroppedPathsRequest, ResolveDroppedPathsResponse } from '../shared/drop';
 
 const api = {
   getVersion: () => process.versions.electron,
@@ -52,6 +53,11 @@ const api = {
   },
   cancelPacking: async (): Promise<boolean> => {
     return ipcRenderer.invoke('packing:cancel');
+  },
+  resolveDroppedPaths: async (
+    payload: ResolveDroppedPathsRequest
+  ): Promise<ResolveDroppedPathsResponse> => {
+    return ipcRenderer.invoke('drop:resolve', payload);
   },
   onPackingProgress: (listener: (progress: PackingProgressEvent) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, progress: PackingProgressEvent) => {

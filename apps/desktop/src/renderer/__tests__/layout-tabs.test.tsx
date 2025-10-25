@@ -50,7 +50,10 @@ describe('renderer layout tabs', () => {
       cancelPacking: vi.fn().mockResolvedValue(false),
       onPackingProgress: vi.fn().mockReturnValue(() => {}),
       onPackingResult: vi.fn().mockReturnValue(() => {}),
-      onPackingError: vi.fn().mockReturnValue(() => {})
+      onPackingError: vi.fn().mockReturnValue(() => {}),
+      resolveDroppedPaths: vi
+        .fn()
+        .mockResolvedValue({ status: 'success', folderPath: '/input' })
     };
 
     window.stemPacker = api;

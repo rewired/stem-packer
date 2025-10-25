@@ -7,10 +7,12 @@ import type { AppInfo, Preferences } from '../shared/preferences';
 import type { CollisionCheckPayload } from '../shared/collisions';
 import type { ArtistProfile } from '../shared/artist';
 import type { PackingRequest, PackingResult, PackingProgressEvent } from '../shared/packing';
+import type { ResolveDroppedPathsRequest } from '../shared/drop';
 import { detectOutputCollisions, overwriteOutputCollisions } from './collisions';
 import { scanAudioFiles } from './scanner';
 import { PreferencesStore, ArtistStore } from './stores';
 import { PackingManager, InsufficientDiskSpaceError } from './packingManager';
+import { resolveDroppedPaths } from './drop';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const devServerUrl = process.env.VITE_DEV_SERVER_URL;
@@ -125,6 +127,10 @@ ipcMain.handle('scan:folder', async (_event, folderPath: string) => {
 
   const result = await scanAudioFiles(directoryPath, preferences);
   return result;
+});
+
+ipcMain.handle('drop:resolve', async (_event, payload: ResolveDroppedPathsRequest) => {
+  return resolveDroppedPaths(payload);
 });
 
 ipcMain.handle('packing:detect-collisions', async (_event, payload: CollisionCheckPayload) => {

@@ -6,6 +6,8 @@ All notable changes to StemPacker will be documented in this file.
 ### Added
 - Added renderer packing controls with localized start/cancel actions, live progress, and IPC-driven
   error handling, alongside Vitest coverage for the button flow and mock progress events.
+- Implemented cross-platform folder drag-and-drop with renderer drop-surface highlighting, IPC-backed
+  directory validation, and friendly toasts for unsupported drops.
 - Surfaced ZIP mono split warnings end-to-end: the estimator now reports oversized candidates,
   scans relay affected files over IPC, the renderer displays alerts/badges plus a toast, and
   Vitest covers the warning flow.

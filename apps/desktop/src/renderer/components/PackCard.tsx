@@ -2,7 +2,8 @@ import { Icon } from '@stem-packer/ui';
 import type { AudioFileItem } from '../../shared/preferences';
 import type { PackingProgressEvent, PackingResult } from '../../shared/packing';
 import type { InfoTextFormState } from '../../shared/info';
-import { DragAndDropArea } from './DragAndDropArea';
+import type { DroppedFolderResolutionError } from '../../shared/drop';
+import { DropSurface } from './DropSurface';
 import { FilesTable } from './FilesTable';
 import { MetadataForm } from './MetadataForm';
 import { PackingProgress } from './PackingProgress';
@@ -17,7 +18,8 @@ interface PackCardProps {
   files: AudioFileItem[];
   monoSplitTooLargeFiles: AudioFileItem[];
   isScanning: boolean;
-  onDrop: (paths: string[]) => Promise<void> | void;
+  onFolderDrop: (folderPath: string) => Promise<void> | void;
+  onDropError: (reason: DroppedFolderResolutionError) => Promise<void> | void;
   onChooseFolder: () => Promise<void>;
   selectedFolder: string | null;
   ignoredCount: number;
@@ -46,7 +48,8 @@ export function PackCard({
   files,
   monoSplitTooLargeFiles,
   isScanning,
-  onDrop,
+  onFolderDrop,
+  onDropError,
   onChooseFolder,
   selectedFolder,
   ignoredCount,
@@ -102,7 +105,12 @@ export function PackCard({
         <div className="card-body">
           <div className="flex flex-col gap-4">
             {showSelectionControls ? (
-              <DragAndDropArea isActive={false} onDrop={onDrop} disabled={isScanning} />
+              <DropSurface
+                isActive={false}
+                onFolderDrop={onFolderDrop}
+                onDropError={onDropError}
+                disabled={isScanning}
+              />
             ) : selectedFolder ? (
               <SelectionSummary
                 folderPath={selectedFolder}

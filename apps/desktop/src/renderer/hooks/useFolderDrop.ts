@@ -1,6 +1,21 @@
 import { useCallback, useState } from 'react';
 import type { DragEvent as ReactDragEvent } from 'react';
-import { computeCommonAncestor, stripDirectorySeparators } from '../utils/pathFormatting';
+import {
+  computeCommonAncestor,
+  stripDirectorySeparators
+} from '../utils/pathFormatting';
+import type {
+  DroppedFolderResolutionError,
+  ResolveDroppedPathsResponse
+} from '../../shared/drop';
+
+type FileSystemEntry = {
+  isDirectory: boolean;
+};
+
+type FileSystemItem = DataTransferItem & {
+  webkitGetAsEntry?: () => FileSystemEntry | null;
+};
 
 function normalizeFileUri(uri: string): string | null {
   try {
@@ -68,6 +83,17 @@ function parseFileList(dataTransfer: DataTransfer): string[] {
     .filter((path): path is string => typeof path === 'string' && path.length > 0);
 }
 
+function hasDirectoryEntry(dataTransfer: DataTransfer | null): boolean {
+  if (!dataTransfer?.items) {
+    return false;
+  }
+
+  return Array.from(dataTransfer.items).some((item) => {
+    const entry = (item as FileSystemItem).webkitGetAsEntry?.();
+    return Boolean(entry?.isDirectory);
+  });
+}
+
 export function extractPathsFromDataTransfer(dataTransfer: DataTransfer | null): string[] {
   if (!dataTransfer) {
     return [];
@@ -84,14 +110,6 @@ export function extractPathsFromDataTransfer(dataTransfer: DataTransfer | null):
   }
 
   return parseFileList(dataTransfer);
-}
-
-function extractDroppedPaths(event: ReactDragEvent<HTMLDivElement>): string[] {
-  return extractPathsFromDataTransfer(event.dataTransfer ?? null);
-}
-
-export function extractPathsFromDomDrop(event: DragEvent): string[] {
-  return extractPathsFromDataTransfer(event.dataTransfer ?? null);
 }
 
 export function resolveDroppedFolder(paths: string[]): string | null {
@@ -134,15 +152,43 @@ export function resolveDroppedFolder(paths: string[]): string | null {
   return stripDirectorySeparators(trimmed[0]);
 }
 
-interface UseDroppedPathsOptions {
-  disabled?: boolean;
-  onPathsSelected: (paths: string[]) => void;
+export async function resolveDroppedFolderFromDataTransfer(
+  dataTransfer: DataTransfer | null
+): Promise<ResolveDroppedPathsResponse> {
+  const paths = extractPathsFromDataTransfer(dataTransfer);
+  const candidate = resolveDroppedFolder(paths);
+  const response = await window.stemPacker.resolveDroppedPaths({
+    paths,
+    candidate,
+    hasDirectoryEntry: hasDirectoryEntry(dataTransfer)
+  });
+  return response;
 }
 
-export function useDroppedPaths({ disabled, onPathsSelected }: UseDroppedPathsOptions) {
+export async function resolveDroppedFolderFromDomEvent(
+  event: DragEvent
+): Promise<ResolveDroppedPathsResponse> {
+  return resolveDroppedFolderFromDataTransfer(event.dataTransfer ?? null);
+}
+
+interface UseFolderDropOptions {
+  disabled?: boolean;
+  onFolderDrop: (folderPath: string) => Promise<void> | void;
+  onDropError?: (reason: DroppedFolderResolutionError) => Promise<void> | void;
+}
+
+export function useFolderDrop({
+  disabled,
+  onFolderDrop,
+  onDropError
+}: UseFolderDropOptions) {
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDragOver = useCallback(
+  const clearDragState = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  const handleDragEnter = useCallback(
     (event: ReactDragEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
@@ -154,34 +200,62 @@ export function useDroppedPaths({ disabled, onPathsSelected }: UseDroppedPathsOp
     [disabled]
   );
 
+  const handleDragOver = useCallback(
+    (event: ReactDragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = disabled ? 'none' : 'copy';
+      }
+      if (disabled) {
+        return;
+      }
+      setIsDragging(true);
+    },
+    [disabled]
+  );
+
   const handleDragLeave = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    const nextTarget = event.relatedTarget;
+    if (nextTarget && event.currentTarget.contains(nextTarget as Node)) {
+      return;
+    }
     setIsDragging(false);
   }, []);
 
   const handleDrop = useCallback(
-    (event: ReactDragEvent<HTMLDivElement>) => {
+    async (event: ReactDragEvent<HTMLDivElement>) => {
       event.preventDefault();
       event.stopPropagation();
-      setIsDragging(false);
+      clearDragState();
       if (disabled) {
         return;
       }
 
-      const paths = extractDroppedPaths(event);
-      if (paths.length > 0) {
-        onPathsSelected(paths);
+      try {
+        const result = await resolveDroppedFolderFromDataTransfer(event.dataTransfer ?? null);
+        if (result.status === 'success') {
+          await onFolderDrop(result.folderPath);
+        } else if (onDropError) {
+          await onDropError(result.reason);
+        }
+      } catch (error) {
+        console.error('Failed to process dropped folder', error);
+        if (onDropError) {
+          await onDropError('unknown');
+        }
       }
     },
-    [disabled, onPathsSelected]
+    [clearDragState, disabled, onDropError, onFolderDrop]
   );
 
-  return { isDragging, handleDragOver, handleDragLeave, handleDrop };
-}
-
-export function parseDroppedEvent(
-  event: ReactDragEvent<HTMLDivElement>
-): string[] {
-  return extractDroppedPaths(event);
+  return {
+    isDragging,
+    handleDragEnter,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop
+  } as const;
 }
