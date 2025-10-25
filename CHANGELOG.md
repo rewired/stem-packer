@@ -44,6 +44,8 @@ All notable changes to StemPacker will be documented in this file.
 - Moved the renderer pack workflow and preferences form into localized DaisyUI tabs with updated layout coverage.
 
 ### Fixed
+- Prevented dropped files from navigating the Electron window so the drag-and-drop importer
+  consistently receives folder paths.
 - Corrected the `execFile` wrapper typings so TypeScript accepts the promisified
   signature without requiring a callback argument.
 - Replaced direct imports of `node:child_process/promises` in the pack engine with a

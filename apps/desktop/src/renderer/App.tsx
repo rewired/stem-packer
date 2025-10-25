@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { DragEvent } from 'react';
+import type { DragEvent as ReactDragEvent } from 'react';
 import { TranslationProvider, useTranslation } from './hooks/useTranslation';
 import type { Translator } from './hooks/useTranslation';
 import { Icon } from '@stem-packer/ui';
@@ -67,7 +67,7 @@ function DragAndDropArea({
   const { t } = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (event: ReactDragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     if (disabled) {
@@ -76,13 +76,13 @@ function DragAndDropArea({
     setIsDragging(true);
   };
 
-  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+  const handleDragLeave = (event: ReactDragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
   };
 
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (event: ReactDragEvent<HTMLDivElement>) => {
     event.preventDefault();
     event.stopPropagation();
     setIsDragging(false);
@@ -829,6 +829,24 @@ function AppContent() {
   const [lastPackResult, setLastPackResult] = useState<PackingResult | null>(null);
   const [isCancellingPacking, setIsCancellingPacking] = useState(false);
   const { toast, showToast } = useToast();
+
+  useEffect(() => {
+    const preventWindowNavigation = (event: DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'copy';
+      }
+    };
+
+    window.addEventListener('dragover', preventWindowNavigation);
+    window.addEventListener('drop', preventWindowNavigation);
+
+    return () => {
+      window.removeEventListener('dragover', preventWindowNavigation);
+      window.removeEventListener('drop', preventWindowNavigation);
+    };
+  }, []);
 
   useEffect(() => {
     async function bootstrap() {
