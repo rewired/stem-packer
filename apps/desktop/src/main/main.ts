@@ -13,6 +13,7 @@ import { scanAudioFiles } from './scanner';
 import { PreferencesStore, ArtistStore } from './stores';
 import { PackingManager, InsufficientDiskSpaceError } from './packingManager';
 import { resolveDroppedPaths } from './drop';
+import { loadWindowState, trackWindowState } from './windowState';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 const devServerUrl = process.env.VITE_DEV_SERVER_URL;
@@ -20,6 +21,7 @@ const t = createTranslator('en');
 const userDataPath = app.getPath('userData');
 const preferencesStore = new PreferencesStore(userDataPath);
 const artistStore = new ArtistStore(userDataPath);
+const DEFAULT_WINDOW_BOUNDS = { width: 1000, height: 700 } as const;
 
 function broadcast<T>(channel: string, payload: T) {
   for (const window of BrowserWindow.getAllWindows()) {
@@ -47,9 +49,16 @@ const packingManager = new PackingManager({
 });
 
 async function createMainWindow() {
+  const bounds = await loadWindowState(DEFAULT_WINDOW_BOUNDS);
+  const position =
+    typeof bounds.x === 'number' && typeof bounds.y === 'number'
+      ? { x: bounds.x, y: bounds.y }
+      : {};
+
   const window = new BrowserWindow({
-    width: 1280,
-    height: 720,
+    width: bounds.width,
+    height: bounds.height,
+    ...position,
     show: true,
     title: t('app_title'),
     backgroundColor: '#1f2937',
@@ -60,6 +69,8 @@ async function createMainWindow() {
       sandbox: false
     }
   });
+
+  trackWindowState(window);
 
   if (isDevelopment && devServerUrl) {
     await window.loadURL(devServerUrl);
