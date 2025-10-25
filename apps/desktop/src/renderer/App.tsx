@@ -55,6 +55,58 @@ interface PerformScanOptions {
   suppressSplitPrompt?: boolean;
 }
 
+function normalizeFileUri(uri: string): string | null {
+  try {
+    const url = new URL(uri);
+    if (url.protocol !== 'file:') {
+      return null;
+    }
+
+    const host = url.host && url.host !== 'localhost' ? `//${url.host}` : '';
+    let pathname = decodeURI(url.pathname);
+
+    if (/^\/[A-Za-z]:/.test(pathname)) {
+      pathname = pathname.slice(1);
+    }
+
+    const rawPath = `${host}${pathname}`;
+    const isWindows = typeof navigator !== 'undefined' && /Windows/i.test(navigator.userAgent);
+    return isWindows ? rawPath.replace(/\//g, '\\') : rawPath;
+  } catch (error) {
+    console.error('Failed to decode dropped URI', uri, error);
+    return null;
+  }
+}
+
+function extractDroppedPaths(event: ReactDragEvent<HTMLDivElement>): string[] {
+  const dataTransfer = event.dataTransfer;
+  if (!dataTransfer) {
+    return [];
+  }
+
+  const uriList = dataTransfer.getData('text/uri-list');
+  if (uriList) {
+    const fromUris = uriList
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0 && !line.startsWith('#'))
+      .map(normalizeFileUri)
+      .filter((value): value is string => Boolean(value));
+
+    if (fromUris.length > 0) {
+      return fromUris;
+    }
+  }
+
+  if (dataTransfer.files && dataTransfer.files.length > 0) {
+    return Array.from(dataTransfer.files)
+      .map((file) => (file as File & { path?: string }).path)
+      .filter((path): path is string => typeof path === 'string' && path.length > 0);
+  }
+
+  return [];
+}
+
 function DragAndDropArea({
   isActive,
   onDrop,
@@ -90,8 +142,7 @@ function DragAndDropArea({
       return;
     }
 
-    const files = Array.from(event.dataTransfer.files);
-    const paths = files.map((file) => (file as File & { path?: string }).path).filter(Boolean) as string[];
+    const paths = extractDroppedPaths(event);
     if (paths.length > 0) {
       onDrop(paths);
     }
