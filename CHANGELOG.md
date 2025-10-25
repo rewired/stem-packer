@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Displayed inline pack progress directly on the toolbar button with a live percent label,
+  compact progress bar, and disabled controls while packing is running.
 - Introduced a compact selection info bar beneath the toolbar with a copyable folder path,
   live file/ignored badges, and ZIP/7z archive estimates.
 - Added a compact top toolbar with always-visible folder selection, target-size, format toggle,

@@ -15,6 +15,7 @@
   "button_cancel_packing": "Packen abbrechen",
   "button_cancelling_packing": "Abbruch läuft",
   "btn_pack": "Packen",
+  "btn_pack_packing": "Packe… {percent}%",
   "lbl_target_size_mb": "Zielgröße (MB)",
   "seg_zip": "ZIP",
   "seg_7z": "7z",

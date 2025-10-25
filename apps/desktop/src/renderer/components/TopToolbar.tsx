@@ -39,7 +39,8 @@ export function TopToolbar({
   preferencesReady
 }: TopToolbarProps) {
   const { t } = useTranslation();
-  const wrapperClasses = disabled ? 'opacity-60 pointer-events-none' : '';
+  const isDisabled = Boolean(disabled);
+  const wrapperClasses = isDisabled ? 'opacity-60 pointer-events-none' : '';
 
   const handleTargetSizeChange = (value: number) => {
     if (!preferencesReady) {
@@ -63,13 +64,12 @@ export function TopToolbar({
   };
 
   const chooseFolderLabel = isScanning ? t('button_scanning') : t('btn_choose_folder');
+  const packingPercent = isPacking ? Math.max(0, Math.min(100, Math.floor(progress?.percent ?? 0))) : 0;
   const packLabel = isCancellingPacking
     ? t('button_cancelling_packing')
     : isPacking
-      ? t('button_packing_active')
+      ? t('btn_pack_packing', { percent: packingPercent })
       : t('btn_pack');
-  const progressPercent = progress?.percent ?? null;
-  const roundedProgress = progressPercent !== null ? Math.round(progressPercent) : null;
 
   return (
     <div className={`flex flex-wrap items-center gap-2 ${wrapperClasses}`}>
@@ -79,7 +79,7 @@ export function TopToolbar({
         onClick={() => {
           void onChooseFolder();
         }}
-        disabled={isScanning}
+        disabled={isScanning || isDisabled}
       >
         <Icon name="folder_open" className="text-xl" />
         <span>{chooseFolderLabel}</span>
@@ -98,7 +98,7 @@ export function TopToolbar({
               handleTargetSizeChange(nextValue);
             }
           }}
-          disabled={!preferencesReady}
+          disabled={!preferencesReady || isDisabled}
         />
       </label>
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -111,7 +111,7 @@ export function TopToolbar({
               handleFormatChange('zip');
             }}
             aria-pressed={format === 'zip'}
-            disabled={!preferencesReady}
+            disabled={!preferencesReady || isDisabled}
           >
             {t('seg_zip')}
           </button>
@@ -122,7 +122,7 @@ export function TopToolbar({
               handleFormatChange('7z');
             }}
             aria-pressed={format === '7z'}
-            disabled={!preferencesReady}
+            disabled={!preferencesReady || isDisabled}
           >
             {t('seg_7z')}
           </button>
@@ -137,23 +137,30 @@ export function TopToolbar({
           onChange={(event) => {
             handleAutoSplitChange(event.target.checked);
           }}
-          disabled={!preferencesReady}
+          disabled={!preferencesReady || isDisabled}
         />
       </label>
-      <button
-        className="btn btn-primary btn-sm"
-        type="button"
-        onClick={() => {
-          void onPack();
-        }}
-        disabled={!canPack || isPacking}
-      >
-        <Icon name="inventory_2" className="text-xl" />
-        <span>{packLabel}</span>
-        {isPacking && roundedProgress !== null ? (
-          <span className="text-xs text-primary-content/80">{roundedProgress}%</span>
+      <div className="flex items-center gap-2">
+        <button
+          className="btn btn-primary btn-sm"
+          type="button"
+          onClick={() => {
+            void onPack();
+          }}
+          disabled={!canPack || isDisabled}
+        >
+          <Icon name="inventory_2" className="text-xl" />
+          <span>{packLabel}</span>
+        </button>
+        {isPacking ? (
+          <progress
+            className="progress progress-primary progress-xs w-28"
+            value={packingPercent}
+            max={100}
+            aria-hidden
+          />
         ) : null}
-      </button>
+      </div>
     </div>
   );
 }
