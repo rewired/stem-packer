@@ -28,6 +28,8 @@
   "selected_folder_label": "Selected folder: {path}",
   "selected_folder_empty": "No folder selected yet.",
   "table_empty_state": "No supported audio files found in the folder.",
+  "no_supported_audio_in_folder": "No supported audio files found in the folder.",
+  "toast_no_supported_audio_in_folder": "No supported audio files found in the folder.",
   "table_column_name": "Name",
   "table_column_type": "Type",
   "table_column_size": "Size",

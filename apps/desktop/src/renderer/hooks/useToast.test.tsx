@@ -25,4 +25,14 @@ describe('useToast', () => {
 
     timeoutSpy.mockRestore();
   });
+
+  it('stores the provided toast variant', () => {
+    const { result } = renderHook(() => useToast());
+
+    act(() => {
+      result.current.showToast('error toast', 'error');
+    });
+
+    expect(result.current.toast.variant).toBe('error');
+  });
 });

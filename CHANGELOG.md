@@ -42,6 +42,12 @@ All notable changes to StemPacker will be documented in this file.
 - Introduced a multichannel split decision dialog that offers mono splits, 7z volumes, or cancellation with localized UI and flow tests.
 
 ### Changed
+- Let the pack selection summary auto-size by removing its fixed minimum height so the card matches
+  the content instead of leaving extra space.
+- Accepted drag-and-drop inputs at the window level and broadened parsing to cover `text/uri-list`,
+  `text/plain`, and `DataTransfer.files` payloads so folder scans trigger regardless of drop target.
+- Deferred the empty-folder notice until after a completed scan and promoted the message to a
+  localized error toast when no supported audio files are found.
 - Swapped the metadata license text input for a localized dropdown of supported license presets
   to guide `PACK-METADATA.json` values.
 - Exposed metadata form labels in the renderer UI and dropped redundant placeholders so the

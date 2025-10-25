@@ -1,13 +1,15 @@
 import type { AudioFileItem } from '../../shared/preferences';
-import { useTranslation } from '../hooks/useTranslation';
+import { useTranslation, type TranslationKey } from '../hooks/useTranslation';
 import { formatBytes } from '../utils/formatBytes';
 
 interface FilesTableProps {
   files: AudioFileItem[];
   warningFiles?: AudioFileItem[];
+  showEmptyState?: boolean;
+  emptyStateKey?: TranslationKey;
 }
 
-export function FilesTable({ files, warningFiles }: FilesTableProps) {
+export function FilesTable({ files, warningFiles, showEmptyState, emptyStateKey }: FilesTableProps) {
   const { t } = useTranslation();
 
   const warningPaths = new Set(
@@ -15,9 +17,14 @@ export function FilesTable({ files, warningFiles }: FilesTableProps) {
   );
 
   if (files.length === 0) {
+    if (!showEmptyState) {
+      return null;
+    }
+
+    const messageKey = emptyStateKey ?? 'table_empty_state';
     return (
       <div className="rounded-lg border border-base-content/20 p-6 text-center text-base-content/60">
-        {t('table_empty_state')}
+        {t(messageKey)}
       </div>
     );
   }
