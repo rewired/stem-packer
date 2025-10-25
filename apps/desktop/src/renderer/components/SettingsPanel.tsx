@@ -30,14 +30,14 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
       <div className="grid gap-4 md:grid-cols-2">
         <label className="form-control">
           <div className="label">
-            <span className="label-text sr-only">{t('settings_target_size')}</span>
+            <span className="label-text">{t('settings_target_size')}</span>
             <span className="label-text-alt text-base-content/60">{t('settings_target_size_hint')}</span>
           </div>
           <input
             type="number"
             min={1}
             step={1}
-            className="input input-bordered"
+            className="input input-bordered input-sm"
             value={preferences.targetSizeMB}
             onChange={(event) => handleChange('targetSizeMB', Number(event.target.value))}
             placeholder={t('settings_target_size')}
