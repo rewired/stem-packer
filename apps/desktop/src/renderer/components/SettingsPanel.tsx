@@ -59,7 +59,7 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
       </div>
       <label className="form-control">
         <div className="label">
-          <span className="label-text sr-only">{t('settings_output_directory')}</span>
+          <span className="label-text">{t('settings_output_directory')}</span>
           <span className="label-text-alt text-base-content/60">{t('settings_output_directory_hint')}</span>
         </div>
         <input
