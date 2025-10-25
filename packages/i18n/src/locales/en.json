@@ -47,6 +47,7 @@
   "table_column_name": "Name",
   "table_column_type": "Type",
   "table_column_size": "Size",
+  "table_column_actions": "Actions",
   "file_size_bytes": "{value} bytes",
   "file_size_kb": "{value} KB",
   "file_size_mb": "{value} MB",

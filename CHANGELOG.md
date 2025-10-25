@@ -52,6 +52,8 @@ All notable changes to StemPacker will be documented in this file.
 - Introduced a multichannel split decision dialog that offers mono splits, 7z volumes, or cancellation with localized UI and flow tests.
 
 ### Changed
+- Densified the files table with a sticky header, capped scroll height, and fixed-width columns
+  so file metadata stays aligned while scrolling.
 - Let the pack selection summary auto-size by removing its fixed minimum height so the card matches
   the content instead of leaving extra space.
 - Accepted drag-and-drop inputs at the window level and broadened parsing to cover `text/uri-list`,
