@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Introduced a compact selection info bar beneath the toolbar with a copyable folder path,
+  live file/ignored badges, and ZIP/7z archive estimates.
 - Added a compact top toolbar with always-visible folder selection, target-size, format toggle,
   auto-split switch, and pack action for faster workflows.
 - Inline warnings for non-splittable files that exceed the ZIP size limit, including severity-based

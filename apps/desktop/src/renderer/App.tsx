@@ -29,6 +29,7 @@ import { SplitDecisionDialog, type SplitDecisionPrompt } from './components/Spli
 import type { DroppedFolderResolutionError } from '../shared/drop';
 import { resolveDroppedFolderFromDomEvent } from './hooks/useFolderDrop';
 import type { PackingStatus } from './components/PackingStatusAlerts';
+import { SelectionInfoBar } from './components/SelectionInfoBar';
 
 interface PerformScanOptions {
   suppressSplitPrompt?: boolean;
@@ -532,7 +533,36 @@ function AppContent() {
     setPackingStatus('idle');
   };
 
+  const handleCopyFolderPath = useCallback(async () => {
+    if (!selectedFolder) {
+      return;
+    }
+
+    try {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard API unavailable');
+      }
+
+      await navigator.clipboard.writeText(selectedFolder);
+      showToast(t('toast_folder_path_copied'), 'success');
+    } catch (error) {
+      console.error('Failed to copy folder path', error);
+      showToast(t('toast_folder_path_copy_failed'), 'error');
+    }
+  }, [selectedFolder, showToast, t]);
+
   const activePreferences = preferences ?? DEFAULT_PREFERENCES;
+  const archiveEstimate = useMemo(() => {
+    if (files.length === 0) {
+      return { zipArchiveCount: 0, sevenZipVolumeCount: 0 };
+    }
+
+    const estimate = estimateArchiveCount(files, activePreferences);
+    return {
+      zipArchiveCount: estimate.zipArchiveCount,
+      sevenZipVolumeCount: estimate.sevenZipVolumeCount
+    };
+  }, [files, activePreferences]);
   const isZipFormat = activePreferences.format === 'zip';
   const nonSplittableExcesses = useMemo(() => {
     if (!isZipFormat || files.length === 0) {
@@ -577,6 +607,7 @@ function AppContent() {
   const toastVariant = toast.variant ?? 'info';
   const toastClassName = toastVariantClasses[toastVariant];
   const toastIconName = toastIcons[toastVariant];
+  const showSelectionInfo = Boolean(selectedFolder && files.length > 0);
 
   return (
     <main className="min-h-screen bg-base-300 text-base-content">
@@ -599,6 +630,16 @@ function AppContent() {
           progress={packingProgress}
           preferencesReady={Boolean(preferences)}
         />
+        {showSelectionInfo ? (
+          <SelectionInfoBar
+            folderPath={selectedFolder}
+            fileCount={files.length}
+            ignoredCount={ignoredCount}
+            zipCount={archiveEstimate.zipArchiveCount}
+            sevenZipCount={archiveEstimate.sevenZipVolumeCount}
+            onCopyPath={handleCopyFolderPath}
+          />
+        ) : null}
         <div className="flex flex-col gap-3">
           <div role="tablist" className="tabs tabs-boxed w-fit">
             <button
