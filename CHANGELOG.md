@@ -4,6 +4,9 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Added a release-metadata form with localized labels, persisted artist state, and IPC wiring so
+  packing requests enrich `PACK-METADATA.json`/`INFO.txt`; integration tests now assert the
+  exported artifacts echo user input.
 - Wired the packing manager to stream progress IPC events, honor cancellations, and reject jobs
   when the destination lacks a safety margin of free space.
 - Added persistent artist storage alongside existing preference fields plus Vitest coverage for

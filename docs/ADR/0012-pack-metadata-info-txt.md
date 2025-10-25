@@ -33,3 +33,5 @@ remain UTF-8 without byte-order marks.
 * Tests now enforce the UTF-8/no-BOM contract for `INFO.txt` and guard against accidental localization of the Key label.
 * The pack-engine split types surface `channelMapSource`, enabling richer provenance tracking for mono stems and ensuring
   downstream consumers understand how labels were derived.
+* The desktop renderer now surfaces localized metadata inputs (with persisted artist state) and pipes them through packing
+  requests so `PACK-METADATA.json`/`INFO.txt` mirror the user's entries.

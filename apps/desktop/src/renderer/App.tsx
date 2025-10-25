@@ -10,6 +10,7 @@ import type {
   ScanResult
 } from '../shared/preferences';
 import { DEFAULT_PREFERENCES } from '../shared/preferences';
+import { DEFAULT_INFO_TEXT_FORM, type InfoTextFormState } from '../shared/info';
 import type { CollisionCheckPayload, CollisionKind } from '../shared/collisions';
 import { estimateArchiveCount } from '../main/estimator';
 import { useToast } from './hooks/useToast';
@@ -159,6 +160,112 @@ function FileRow({ file }: { file: AudioFileItem }) {
   );
 }
 
+function MetadataForm({
+  fields,
+  onChange,
+  onArtistBlur
+}: {
+  fields: InfoTextFormState;
+  onChange: (update: Partial<InfoTextFormState>) => void;
+  onArtistBlur?: () => void | Promise<void>;
+}) {
+  const { t } = useTranslation();
+
+  const handleArtistBlur = () => {
+    if (onArtistBlur) {
+      void onArtistBlur();
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-xl font-semibold">{t('metadata_section_title')}</h3>
+        <p className="text-sm text-base-content/70">{t('metadata_section_description')}</p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <label className="form-control">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_title')}</span>
+          </div>
+          <input
+            type="text"
+            className="input input-bordered"
+            value={fields.title}
+            onChange={(event) => onChange({ title: event.target.value })}
+          />
+        </label>
+        <label className="form-control">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_artist')}</span>
+          </div>
+          <input
+            type="text"
+            className="input input-bordered"
+            value={fields.artist}
+            onChange={(event) => onChange({ artist: event.target.value })}
+            onBlur={handleArtistBlur}
+          />
+        </label>
+        <label className="form-control">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_album')}</span>
+          </div>
+          <input
+            type="text"
+            className="input input-bordered"
+            value={fields.album}
+            onChange={(event) => onChange({ album: event.target.value })}
+          />
+        </label>
+        <label className="form-control">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_bpm')}</span>
+          </div>
+          <input
+            type="text"
+            className="input input-bordered"
+            value={fields.bpm}
+            onChange={(event) => onChange({ bpm: event.target.value })}
+          />
+        </label>
+        <label className="form-control">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_key')}</span>
+          </div>
+          <input
+            type="text"
+            className="input input-bordered"
+            value={fields.key}
+            onChange={(event) => onChange({ key: event.target.value })}
+          />
+        </label>
+        <label className="form-control">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_license')}</span>
+          </div>
+          <input
+            type="text"
+            className="input input-bordered"
+            value={fields.license}
+            onChange={(event) => onChange({ license: event.target.value })}
+          />
+        </label>
+        <label className="form-control md:col-span-2">
+          <div className="label">
+            <span className="label-text">{t('metadata_field_attribution')}</span>
+          </div>
+          <textarea
+            className="textarea textarea-bordered h-24"
+            value={fields.attribution}
+            onChange={(event) => onChange({ attribution: event.target.value })}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function SettingsPanel({
   preferences,
   onChange,
@@ -301,7 +408,10 @@ function PackCard({
   onDrop,
   onChooseFolder,
   selectedFolder,
-  ignoredCount
+  ignoredCount,
+  metadataFields,
+  onMetadataChange,
+  onArtistBlur
 }: {
   active: boolean;
   panelId: string;
@@ -312,6 +422,9 @@ function PackCard({
   onChooseFolder: () => Promise<void>;
   selectedFolder: string | null;
   ignoredCount: number;
+  metadataFields: InfoTextFormState;
+  onMetadataChange: (update: Partial<InfoTextFormState>) => void;
+  onArtistBlur: () => void | Promise<void>;
 }) {
   const { t } = useTranslation();
 
@@ -353,6 +466,11 @@ function PackCard({
               </button>
             </div>
             <FilesTable files={files} />
+            <MetadataForm
+              fields={metadataFields}
+              onChange={onMetadataChange}
+              onArtistBlur={onArtistBlur}
+            />
           </div>
         </div>
       </div>
@@ -557,22 +675,38 @@ function AppContent() {
   );
   const [aboutOpen, setAboutOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'pack' | 'preferences'>('pack');
+  const [metadataFields, setMetadataFields] = useState<InfoTextFormState>(DEFAULT_INFO_TEXT_FORM);
   const { toast, showToast } = useToast();
 
   useEffect(() => {
     async function bootstrap() {
-      const [info, prefs] = await Promise.all([
+      const [info, prefs, artistProfile] = await Promise.all([
         window.stemPacker.getAppInfo(),
-        window.stemPacker.getPreferences()
+        window.stemPacker.getPreferences(),
+        window.stemPacker.getArtist()
       ]);
       setAppInfo(info);
       setPreferences(prefs);
+      setMetadataFields((current) => ({ ...current, artist: artistProfile.artist }));
     }
 
     bootstrap().catch((error) => {
       console.error('Failed to initialize application', error);
     });
   }, []);
+
+  const handleMetadataChange = (update: Partial<InfoTextFormState>) => {
+    setMetadataFields((current) => ({ ...current, ...update }));
+  };
+
+  const persistArtist = async () => {
+    try {
+      const profile = await window.stemPacker.saveArtist(metadataFields.artist);
+      setMetadataFields((current) => ({ ...current, artist: profile.artist }));
+    } catch (error) {
+      console.error('Failed to persist artist name', error);
+    }
+  };
 
   const performScan = async (
     folderPath: string,
@@ -789,6 +923,9 @@ function AppContent() {
               onChooseFolder={handleChooseFolder}
               selectedFolder={selectedFolder}
               ignoredCount={ignoredCount}
+              metadataFields={metadataFields}
+              onMetadataChange={handleMetadataChange}
+              onArtistBlur={persistArtist}
             />
             <PreferencesCard
               active={activeTab === 'preferences'}

@@ -20,7 +20,7 @@ import { resolveOutputDirectory } from './collisions';
 import type { AudioFileItem, Preferences } from '../shared/preferences';
 import type { PackingRequest, PackingResult, PackingProgressEvent } from '../shared/packing';
 import type { PreferencesStore, ArtistStore } from './stores';
-import type { ArtistProfile } from '../shared/artist';
+import type { InfoTextFields } from '../shared/info';
 
 const MINIMUM_MARGIN_BYTES = 128 * 1024 * 1024; // 128 MB safety margin.
 const MARGIN_RATIO = 0.1; // 10% overhead margin.
@@ -143,7 +143,7 @@ export class PackingManager {
 
   private buildMetadataEntries(
     preferences: Preferences,
-    artist: ArtistProfile,
+    info: InfoTextFields,
     files: AudioFileItem[],
   ): MetadataEntry[] {
     const outputs = files.map((file) => ({
@@ -155,11 +155,11 @@ export class PackingManager {
       format: preferences.format,
       targetSizeMB: preferences.targetSizeMB,
       autoSplitMultichannelToMono: preferences.auto_split_multichannel_to_mono,
-      info: artist,
+      info,
       outputs,
     });
 
-    const infoText = createInfoTextEntry(artist);
+    const infoText = createInfoTextEntry(info);
     return [metadata, infoText];
   }
 
@@ -203,10 +203,23 @@ export class PackingManager {
       throw new Error('No packable audio files were provided for packing');
     }
 
-    const artistInput = request.artist ?? this.artistStore.get().artist;
-    const artistProfile = await this.artistStore.set(artistInput);
+    const requestInfo: InfoTextFields = request.info ?? {};
+    const currentArtist = this.artistStore.get().artist;
+    const fallbackArtist =
+      typeof request.artist === 'string' && request.artist.trim().length > 0
+        ? request.artist
+        : currentArtist;
+    const nextArtistInput =
+      typeof requestInfo.artist === 'string' && requestInfo.artist.trim().length > 0
+        ? requestInfo.artist
+        : fallbackArtist;
+    const artistProfile = await this.artistStore.set(nextArtistInput);
+    const infoForMetadata: InfoTextFields = {
+      ...requestInfo,
+      artist: artistProfile.artist,
+    };
 
-    const metadataEntries = this.buildMetadataEntries(preferences, artistProfile, packable);
+    const metadataEntries = this.buildMetadataEntries(preferences, infoForMetadata, packable);
     const candidates = await this.preparePackCandidates(packable);
     const outputDir = resolveOutputDirectory(normalizedFolder, preferences.outputDir);
 

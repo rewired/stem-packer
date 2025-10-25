@@ -4,10 +4,10 @@ import { INFO_TXT_LABELS } from '../info-labels';
 import {
   createInfoTextEntry,
   createPackMetadataEntry,
-  type InfoTextFields,
   type PackMetadataOutput,
   type PackMetadataOptions,
 } from '../pack-metadata';
+import type { InfoTextFields } from '../../shared/info';
 
 describe('createPackMetadataEntry', () => {
   it('serializes pack metadata with channel annotations', () => {
