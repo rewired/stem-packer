@@ -1,0 +1,2 @@
+export const ZIP_EXCESS_WARNING_RATIO = 1.0;
+export const ZIP_EXCESS_CRITICAL_RATIO = 1.2;

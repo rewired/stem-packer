@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Inline warnings for non-splittable files that exceed the ZIP size limit, including severity-based
+  badges, tooltips recommending 7z volumes, and predictor coverage tied to the estimator.
 - Highlight ZIP mono-split candidates directly in the file table with predicted badges and
   legend messaging sourced from the estimator.
 - Added renderer packing controls with localized start/cancel actions, live progress, and IPC-driven

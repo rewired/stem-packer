@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@stem-packer/ui';
 import type { TranslationKey } from './hooks/useTranslation';
 import { TranslationProvider, useTranslation } from './hooks/useTranslation';
@@ -11,7 +11,12 @@ import type {
 import { DEFAULT_PREFERENCES } from '../shared/preferences';
 import { DEFAULT_INFO_TEXT_FORM, type InfoTextFormState } from '../shared/info';
 import type { CollisionCheckPayload } from '../shared/collisions';
-import { estimateArchiveCount, predictMonoSplitCandidates } from '../main/estimator';
+import {
+  estimateArchiveCount,
+  predictExcessNonSplittables,
+  predictMonoSplitCandidates,
+  type ExcessNonSplittablePrediction
+} from '../main/estimator';
 import { useToast } from './hooks/useToast';
 import type { PackingProgressEvent, PackingResult } from '../shared/packing';
 import { PackCard } from './components/PackCard';
@@ -139,14 +144,15 @@ function AppContent() {
     }
   };
 
-  const performScan = async (
-    folderPath: string,
-    overridePreferences?: Preferences,
-    options: PerformScanOptions = {}
-  ) => {
-    setIsScanning(true);
-    setIgnoredCount(0);
-    setHasCompletedScan(false);
+  const performScan = useCallback(
+    async (
+      folderPath: string,
+      overridePreferences?: Preferences,
+      options: PerformScanOptions = {}
+    ) => {
+      setIsScanning(true);
+      setIgnoredCount(0);
+      setHasCompletedScan(false);
     setCollisionPrompt(null);
     setSplitDecisionPrompt(null);
     setPackingStatus('idle');
@@ -240,27 +246,33 @@ function AppContent() {
     } finally {
       setIsScanning(false);
     }
-  };
+  }, [preferences, showToast, t]);
 
-  const handleFolderDrop = async (folderPath: string) => {
-    await performScan(folderPath);
-  };
+  const handleFolderDrop = useCallback(
+    async (folderPath: string) => {
+      await performScan(folderPath);
+    },
+    [performScan]
+  );
 
-  const handleDropError = async (reason: DroppedFolderResolutionError) => {
-    if (reason === 'not_directory') {
-      showToast(t('toast_drop_only_folders'), 'warning');
-      return;
-    }
+  const handleDropError = useCallback(
+    async (reason: DroppedFolderResolutionError) => {
+      if (reason === 'not_directory') {
+        showToast(t('toast_drop_only_folders'), 'warning');
+        return;
+      }
 
-    if (reason === 'not_found') {
-      showToast(t('toast_drop_missing_folder'), 'error');
-      return;
-    }
+      if (reason === 'not_found') {
+        showToast(t('toast_drop_missing_folder'), 'error');
+        return;
+      }
 
-    if (reason === 'unknown') {
-      console.warn('Dropped data could not be resolved to a folder.');
-    }
-  };
+      if (reason === 'unknown') {
+        console.warn('Dropped data could not be resolved to a folder.');
+      }
+    },
+    [showToast, t]
+  );
 
   const dropHandlersRef = useRef({ onSuccess: handleFolderDrop, onError: handleDropError });
   useEffect(() => {
@@ -481,6 +493,18 @@ function AppContent() {
 
   const activePreferences = preferences ?? DEFAULT_PREFERENCES;
   const isZipFormat = activePreferences.format === 'zip';
+  const nonSplittableExcesses = useMemo(() => {
+    if (!isZipFormat || files.length === 0) {
+      return new Map<string, ExcessNonSplittablePrediction>();
+    }
+
+    const predictions = predictExcessNonSplittables(files, activePreferences);
+    if (predictions.length === 0) {
+      return new Map<string, ExcessNonSplittablePrediction>();
+    }
+
+    return new Map(predictions.map((prediction) => [prediction.fileId, prediction]));
+  }, [isZipFormat, files, activePreferences]);
   const monoSplitCandidates = useMemo<AudioFileItem[]>(() => {
     if (!isZipFormat || !activePreferences.auto_split_multichannel_to_mono) {
       return [];
@@ -549,6 +573,7 @@ function AppContent() {
               files={files}
               monoSplitTooLargeFiles={monoSplitTooLargeFiles}
               monoSplitCandidates={monoSplitCandidates}
+              nonSplittableWarnings={nonSplittableExcesses}
               isScanning={isScanning}
               onFolderDrop={handleFolderDrop}
               onDropError={handleDropError}

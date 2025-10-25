@@ -28,6 +28,10 @@ export default defineConfig({
       '@stem-packer/pack-engine': path.resolve(
         __dirname,
         '../../packages/pack-engine/src'
+      ),
+      '@stem-packer/shared': path.resolve(
+        __dirname,
+        '../../packages/shared/src'
       )
     }
   }

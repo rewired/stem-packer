@@ -13,7 +13,9 @@
       "@stem-packer/ui": ["../../packages/ui/src"],
       "@stem-packer/ui/*": ["../../packages/ui/src/*"],
       "@stem-packer/pack-engine": ["../../packages/pack-engine/src"],
-      "@stem-packer/pack-engine/*": ["../../packages/pack-engine/src/*"]
+      "@stem-packer/pack-engine/*": ["../../packages/pack-engine/src/*"],
+      "@stem-packer/shared": ["../../packages/shared/src"],
+      "@stem-packer/shared/*": ["../../packages/shared/src/*"]
     }
   },
   "include": [

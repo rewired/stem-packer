@@ -1,12 +1,13 @@
 import { Icon } from '@stem-packer/ui';
 import type { AudioFileItem } from '../../shared/preferences';
+import type { ExcessNonSplittablePrediction } from '../../main/estimator';
 import { useTranslation, type TranslationKey } from '../hooks/useTranslation';
 import { formatBytes } from '../utils/formatBytes';
 
 interface FilesTableProps {
   files: AudioFileItem[];
-  warningFiles?: AudioFileItem[];
   monoSplitCandidates?: AudioFileItem[];
+  nonSplittableWarnings?: Map<string, ExcessNonSplittablePrediction>;
   showMonoSplitLegend?: boolean;
   showEmptyState?: boolean;
   emptyStateKey?: TranslationKey;
@@ -14,17 +15,15 @@ interface FilesTableProps {
 
 export function FilesTable({
   files,
-  warningFiles,
   monoSplitCandidates,
+  nonSplittableWarnings,
   showMonoSplitLegend,
   showEmptyState,
   emptyStateKey
 }: FilesTableProps) {
   const { t } = useTranslation();
 
-  const warningPaths = new Set(
-    (warningFiles ?? []).map((file) => file.relativePath)
-  );
+  const warningMap = nonSplittableWarnings ?? new Map();
   const monoSplitCandidatePaths = new Set(
     (monoSplitCandidates ?? []).map((file) => file.relativePath)
   );
@@ -58,7 +57,7 @@ export function FilesTable({
               <FileRow
                 key={file.relativePath}
                 file={file}
-                isWarning={warningPaths.has(file.relativePath)}
+                nonSplittableWarning={warningMap.get(file.relativePath)}
                 isMonoSplitCandidate={monoSplitCandidatePaths.has(file.relativePath)}
               />
             ))}
@@ -77,27 +76,40 @@ export function FilesTable({
 
 function FileRow({
   file,
-  isWarning,
+  nonSplittableWarning,
   isMonoSplitCandidate
 }: {
   file: AudioFileItem;
-  isWarning: boolean;
+  nonSplittableWarning?: ExcessNonSplittablePrediction;
   isMonoSplitCandidate: boolean;
 }) {
   const { t } = useTranslation();
+  const severityClass =
+    nonSplittableWarning?.severity === 'critical'
+      ? 'badge-error text-error-content'
+      : 'badge-warning text-warning-content';
+  const showNonSplittableWarning = Boolean(nonSplittableWarning);
   return (
     <tr>
       <td className="align-top">
         <div className="flex flex-wrap items-center gap-2">
+          {showNonSplittableWarning ? (
+            <span
+              className={`badge badge-sm flex items-center gap-1 ${severityClass}`}
+              title={t('tooltip_switch_to_7z_volumes')}
+              aria-label={t('warn_exceeds_limit_long')}
+              data-severity={nonSplittableWarning?.severity}
+            >
+              <Icon name="warning" className="text-xs" aria-hidden="true" />
+              <span>{t('warn_exceeds_limit_short')}</span>
+            </span>
+          ) : null}
           <span className="font-medium">{file.name}</span>
           {isMonoSplitCandidate ? (
             <span className="badge badge-outline badge-neutral badge-sm flex items-center gap-1">
               <Icon name="call_split" className="text-xs" aria-hidden="true" />
               {t('badge_mono_split')}
             </span>
-          ) : null}
-          {isWarning ? (
-            <span className="badge badge-warning badge-sm">{t('badge_zip_mono_split_file')}</span>
           ) : null}
         </div>
       </td>
