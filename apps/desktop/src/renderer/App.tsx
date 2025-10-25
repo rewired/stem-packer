@@ -167,13 +167,12 @@ function AppContent() {
     setMonoSplitTooLargeFiles([]);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
-      setHasCompletedScan(true);
       setSelectedFolder(result.folderPath);
       setIgnoredCount(result.ignoredCount);
       setMonoSplitTooLargeFiles(result.monoSplitTooLargeFiles ?? []);
 
       if (result.files.length === 0) {
-        showToast(t('toast_no_supported_audio_in_folder'), 'error');
+        showToast(t('no_supported_audio_in_folder'), 'error');
         setFiles([]);
         return;
       }
@@ -247,6 +246,7 @@ function AppContent() {
       showToast(t('toast_scan_failed'));
     } finally {
       setIsScanning(false);
+      setHasCompletedScan(true);
     }
   }, [preferences, showToast, t]);
 
@@ -697,7 +697,7 @@ function AppContent() {
                 void resetToIdle();
               }}
               isZipFormat={isZipFormat}
-              showEmptyState={hasCompletedScan && !isScanning}
+              showEmptyState={hasCompletedScan && files.length === 0}
             />
             <PreferencesCard
               active={activeTab === 'preferences'}
