@@ -14,4 +14,14 @@ describe('useDroppedPaths helpers', () => {
     const folder = resolveDroppedFolder(['C:/Projects/Stems/', 'C:/Projects/Stems/song.wav']);
     expect(folder).toBe('C:/Projects/Stems');
   });
+
+  it('returns a single POSIX directory without computing an ancestor', () => {
+    const folder = resolveDroppedFolder(['/input/session/']);
+    expect(folder).toBe('/input/session');
+  });
+
+  it('returns a single Windows directory without computing an ancestor', () => {
+    const folder = resolveDroppedFolder(['C:\\Projects\\Stems\\']);
+    expect(folder).toBe('C:\\Projects\\Stems');
+  });
 });
