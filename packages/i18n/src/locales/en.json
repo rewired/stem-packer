@@ -8,6 +8,8 @@
   "button_scanning": "Scanning",
   "button_save_preferences": "Save Preferences",
   "button_saving": "Saving",
+  "tab_pack": "Pack Stems",
+  "tab_preferences": "Preferences",
   "drag_drop_title": "Drop a folder of stems",
   "drag_drop_description": "Drag and drop a folder or choose one below to begin.",
   "selected_folder_label": "Selected folder: {path}",

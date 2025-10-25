@@ -36,6 +36,7 @@ All notable changes to StemPacker will be documented in this file.
 ### Changed
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 - Stopped persisting the last scanned input directory so aborting collision or split prompts no longer mutates saved preferences.
+- Moved the renderer pack workflow and preferences form into localized DaisyUI tabs with updated layout coverage.
 
 ### Fixed
 - Corrected the `execFile` wrapper typings so TypeScript accepts the promisified
