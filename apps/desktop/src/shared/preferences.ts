@@ -1,14 +1,3 @@
-export const DEFAULT_IGNORE_GLOBS = [
-  '**/.DS_Store',
-  '**/Thumbs.db',
-  '**/~*',
-  '**/*.tmp',
-  '**/*.bak',
-  '**/.git/**',
-  '**/*.cue',
-  '**/*.m3u*'
-];
-
 export const AUDIO_EXTENSIONS = [
   '.wav',
   '.wave',
@@ -68,6 +57,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   outputDir: '',
   auto_split_multichannel_to_mono: false,
   ignore_enabled: true,
-  ignore_globs: [...DEFAULT_IGNORE_GLOBS]
+  ignore_globs: []
 };
 
