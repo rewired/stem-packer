@@ -42,10 +42,7 @@ function FileRow({ file }: { file: AudioFileItem }) {
   return (
     <tr>
       <td className="align-top">
-        <div className="flex flex-col">
-          <span className="font-medium">{file.name}</span>
-          <span className="text-xs text-base-content/60">{file.relativePath}</span>
-        </div>
+        <span className="font-medium">{file.name}</span>
       </td>
       <td className="align-top uppercase text-base-content/70">{file.extension.replace('.', '')}</td>
       <td className="align-top text-right text-base-content/70">{formatBytes(file.sizeBytes, t)}</td>
