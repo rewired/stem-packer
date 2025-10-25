@@ -64,7 +64,7 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
         </div>
         <input
           type="text"
-          className="input input-bordered"
+          className="input input-bordered input-sm"
           value={preferences.outputDir}
           onChange={(event) => handleChange('outputDir', event.target.value)}
           placeholder={t('settings_output_directory_placeholder')}
