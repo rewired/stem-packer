@@ -39,6 +39,8 @@ All notable changes to StemPacker will be documented in this file.
 - Introduced a multichannel split decision dialog that offers mono splits, 7z volumes, or cancellation with localized UI and flow tests.
 
 ### Changed
+- Swapped the metadata license text input for a localized dropdown of supported license presets
+  to guide `PACK-METADATA.json` values.
 - Exposed metadata form labels in the renderer UI and dropped redundant placeholders so the
   DaisyUI layout stays consistent while values are entered.
 - Broke the renderer `App.tsx` into dedicated components, hooks, and utilities so packing progress,

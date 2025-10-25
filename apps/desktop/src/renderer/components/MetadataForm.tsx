@@ -1,4 +1,4 @@
-import type { InfoTextFormState } from '../../shared/info';
+import { LICENSE_OPTIONS, type InfoTextFormState } from '../../shared/info';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface MetadataFormProps {
@@ -93,14 +93,20 @@ export function MetadataForm({ fields, onChange, onArtistBlur }: MetadataFormPro
           <span className="label-text" id="metadata-license-label">
             {t('metadata_field_license')}
           </span>
-          <input
+          <select
             id="metadata-license"
-            type="text"
-            className="input input-bordered input-sm"
+            className="select select-bordered select-sm"
             aria-labelledby="metadata-license-label"
             value={fields.license}
-            onChange={(event) => onChange({ license: event.target.value })}
-          />
+            onChange={(event) => onChange({ license: event.currentTarget.value })}
+          >
+            <option value="">{t('metadata_license_placeholder')}</option>
+            {LICENSE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.labelKey)}
+              </option>
+            ))}
+          </select>
         </label>
         <label className="form-control md:col-span-2" htmlFor="metadata-attribution">
           <span className="label-text" id="metadata-attribution-label">
