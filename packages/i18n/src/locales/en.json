@@ -40,7 +40,7 @@
   "settings_auto_split_hint": "Split lossless multichannel stems into mono when they exceed the target size.",
   "settings_ignore_enabled": "Enable ignore rules",
   "settings_ignore_enabled_hint": "Skip matching files during scanning and packing.",
-  "settings_ignore_patterns": "Ignore glob patterns",
+  "settings_ignore_patterns": "Ignore file patterns",
   "settings_ignore_patterns_hint": "One pattern per line, evaluated relative to the selected folder.",
   "metadata_section_title": "Release metadata",
   "metadata_section_description": "Populate PACK-METADATA.json and INFO.txt with these fields.",

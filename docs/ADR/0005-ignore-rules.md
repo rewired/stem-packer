@@ -10,8 +10,8 @@ Stem folders regularly contain platform metadata files (e.g., `.DS_Store`, `Thum
 
 ## Decision
 
-* Store the default ignore globs alongside user preferences and hydrate them through the existing `PreferencesStore`.
-* Centralize glob evaluation in a `createIgnoreMatcher` helper that normalizes paths to POSIX separators before delegating to `picomatch` with `dot` support.
+* Store the default ignore patterns alongside user preferences and hydrate them through the existing `PreferencesStore`.
+* Centralize pattern evaluation in a `createIgnoreMatcher` helper that normalizes paths to POSIX separators before delegating to `picomatch` with `dot` support.
 * Apply the matcher when traversing directories so ignored folders short-circuit traversal, incrementing an `ignoredCount` counter that is exposed to the renderer.
 * Reuse the same matcher in the estimator and packer layers to ensure that even manually constructed file lists cannot leak ignored files into archive plans.
 * Surface feedback in the renderer via an “ignored: N” badge and toast to explain why some files disappeared from the table.

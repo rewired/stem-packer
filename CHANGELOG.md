@@ -43,6 +43,7 @@ All notable changes to StemPacker will be documented in this file.
 - Stopped persisting the last scanned input directory so aborting collision or split prompts no longer mutates saved preferences.
 - Moved the renderer pack workflow and preferences form into localized DaisyUI tabs with updated layout coverage.
 - Removed the default ignore glob list so audio scans depend solely on the configured extensions when selecting candidates.
+- Retitled the ignore-pattern preference label to remove "glob" terminology from the UI.
 
 ### Fixed
 - Prevented dropped files from navigating the Electron window so the drag-and-drop importer
