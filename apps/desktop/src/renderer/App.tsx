@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@stem-packer/ui';
 import type { TranslationKey } from './hooks/useTranslation';
 import { TranslationProvider, useTranslation } from './hooks/useTranslation';
@@ -11,7 +11,7 @@ import type {
 import { DEFAULT_PREFERENCES } from '../shared/preferences';
 import { DEFAULT_INFO_TEXT_FORM, type InfoTextFormState } from '../shared/info';
 import type { CollisionCheckPayload } from '../shared/collisions';
-import { estimateArchiveCount } from '../main/estimator';
+import { estimateArchiveCount, predictMonoSplitCandidates } from '../main/estimator';
 import { useToast } from './hooks/useToast';
 import type { PackingProgressEvent, PackingResult } from '../shared/packing';
 import { PackCard } from './components/PackCard';
@@ -469,13 +469,23 @@ function AppContent() {
     setPackingStatus('idle');
   };
 
+  const activePreferences = preferences ?? DEFAULT_PREFERENCES;
+  const isZipFormat = activePreferences.format === 'zip';
+  const monoSplitCandidates = useMemo<AudioFileItem[]>(() => {
+    if (!isZipFormat || !activePreferences.auto_split_multichannel_to_mono) {
+      return [];
+    }
+    if (files.length === 0) {
+      return [];
+    }
+    return predictMonoSplitCandidates(files, activePreferences);
+  }, [files, isZipFormat, activePreferences]);
   const canStartPacking =
     files.length > 0 &&
     Boolean(selectedFolder) &&
     Boolean(preferences) &&
     !isScanning &&
     packingStatus !== 'packing';
-  const isZipFormat = (preferences?.format ?? DEFAULT_PREFERENCES.format) === 'zip';
   const toastVariantClasses = {
     info: 'alert-info',
     success: 'alert-success',
@@ -528,6 +538,7 @@ function AppContent() {
               labelledBy="pack-tab"
               files={files}
               monoSplitTooLargeFiles={monoSplitTooLargeFiles}
+              monoSplitCandidates={monoSplitCandidates}
               isScanning={isScanning}
               onDrop={handleDrop}
               onChooseFolder={handleChooseFolder}
