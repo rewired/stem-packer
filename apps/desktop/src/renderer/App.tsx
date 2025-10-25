@@ -393,57 +393,20 @@ function SettingsPanel({
           placeholder={t('settings_output_directory_placeholder')}
         />
       </label>
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="form-control">
-          <div className="label cursor-pointer">
-            <span className="label-text">{t('settings_auto_split')}</span>
-          </div>
-          <input
-            type="checkbox"
-            className="toggle"
-            checked={preferences.auto_split_multichannel_to_mono}
-            onChange={(event) =>
-              handleChange('auto_split_multichannel_to_mono', event.target.checked)
-            }
-          />
-          <span className="mt-2 text-sm text-base-content/60">
-            {t('settings_auto_split_hint')}
-          </span>
-        </label>
-        <div className="form-control">
-          <label className="label cursor-pointer justify-start gap-3">
-            <input
-              type="checkbox"
-              className="checkbox"
-              checked={preferences.ignore_enabled}
-              onChange={(event) => handleChange('ignore_enabled', event.target.checked)}
-            />
-            <span className="label-text">{t('settings_ignore_enabled')}</span>
-          </label>
-          <span className="mt-1 text-sm text-base-content/60">
-            {t('settings_ignore_enabled_hint')}
-          </span>
-        </div>
-      </div>
       <label className="form-control">
-        <div className="label">
-          <span className="label-text">{t('settings_ignore_patterns')}</span>
+        <div className="label cursor-pointer">
+          <span className="label-text">{t('settings_auto_split')}</span>
         </div>
-        <textarea
-          className="textarea textarea-bordered h-32 font-mono text-sm"
-          value={preferences.ignore_globs.join('\n')}
+        <input
+          type="checkbox"
+          className="toggle"
+          checked={preferences.auto_split_multichannel_to_mono}
           onChange={(event) =>
-            handleChange(
-              'ignore_globs',
-              event.target.value
-                .split('\n')
-                .map((line) => line.trim())
-                .filter((line) => line.length > 0)
-            )
+            handleChange('auto_split_multichannel_to_mono', event.target.checked)
           }
         />
-        <span className="mt-1 text-sm text-base-content/60">
-          {t('settings_ignore_patterns_hint')}
+        <span className="mt-2 text-sm text-base-content/60">
+          {t('settings_auto_split_hint')}
         </span>
       </label>
       <div className="flex justify-end">
