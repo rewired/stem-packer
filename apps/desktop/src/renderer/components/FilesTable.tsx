@@ -43,16 +43,19 @@ export function FilesTable({
 
   return (
     <div className="space-y-2">
-      <div className="overflow-x-auto">
-        <table className="table table-zebra w-full">
-          <thead>
+      <div className="overflow-auto max-h-[44vh]">
+        <table className="table table-zebra table-sm w-full">
+          <thead className="sticky top-0 bg-base-100 z-10">
             <tr>
               <th className="w-1/2">{t('table_column_name')}</th>
-              <th>{t('table_column_type')}</th>
-              <th className="text-right">{t('table_column_size')}</th>
+              <th className="w-20">{t('table_column_type')}</th>
+              <th className="w-24 text-right tabular-nums">{t('table_column_size')}</th>
+              <th className="w-16 text-right" aria-label={t('table_column_actions')}>
+                <span className="sr-only">{t('table_column_actions')}</span>
+              </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="text-sm">
             {files.map((file) => (
               <FileRow
                 key={file.relativePath}
@@ -91,11 +94,11 @@ function FileRow({
   const showNonSplittableWarning = Boolean(nonSplittableWarning);
   return (
     <tr>
-      <td className="align-top">
-        <div className="flex flex-wrap items-center gap-2">
+      <td className="w-1/2 align-top">
+        <div className="flex min-w-0 items-center gap-2">
           {showNonSplittableWarning ? (
             <span
-              className={`badge badge-sm flex items-center gap-1 ${severityClass}`}
+              className={`badge badge-sm flex-shrink-0 items-center gap-1 ${severityClass}`}
               title={t('tooltip_switch_to_7z_volumes')}
               aria-label={t('warn_exceeds_limit_long')}
               data-severity={nonSplittableWarning?.severity}
@@ -104,17 +107,22 @@ function FileRow({
               <span>{t('warn_exceeds_limit_short')}</span>
             </span>
           ) : null}
-          <span className="font-medium">{file.name}</span>
+          <span className="flex-1 truncate font-medium">{file.name}</span>
           {isMonoSplitCandidate ? (
-            <span className="badge badge-outline badge-neutral badge-sm flex items-center gap-1">
+            <span className="badge badge-outline badge-neutral badge-sm flex-shrink-0 items-center gap-1">
               <Icon name="call_split" className="text-xs" aria-hidden="true" />
               {t('badge_mono_split')}
             </span>
           ) : null}
         </div>
       </td>
-      <td className="align-top uppercase text-base-content/70">{file.extension.replace('.', '')}</td>
-      <td className="align-top text-right text-base-content/70">{formatBytes(file.sizeBytes, t)}</td>
+      <td className="w-20 align-top uppercase text-base-content/70">{file.extension.replace('.', '')}</td>
+      <td className="w-24 align-top text-right text-base-content/70 tabular-nums">
+        {formatBytes(file.sizeBytes, t)}
+      </td>
+      <td className="w-16 align-top text-right">
+        <span aria-hidden="true">&nbsp;</span>
+      </td>
     </tr>
   );
 }

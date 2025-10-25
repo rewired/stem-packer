@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import type { ReactElement } from 'react';
 import { describe, expect, it } from 'vitest';
 import { TranslationProvider } from '../hooks/useTranslation';
@@ -105,5 +105,33 @@ describe('FilesTable', () => {
 
     expect(badge).toHaveAttribute('title', 'Switch to 7z volumes');
     expect(badge).toHaveAttribute('data-severity', 'critical');
+  });
+
+  it('keeps the table header sticky with fixed column sizing', () => {
+    renderWithTranslations(<FilesTable files={[baseFile]} />);
+
+    const table = screen.getByRole('table');
+    const header = table.querySelector('thead');
+
+    expect(header).not.toBeNull();
+    expect(header).toHaveClass('sticky', 'top-0', 'bg-base-100', 'z-10');
+
+    const [nameHeader, typeHeader, sizeHeader, actionHeader] = within(header!).getAllByRole(
+      'columnheader'
+    );
+
+    expect(nameHeader).toHaveClass('w-1/2');
+    expect(typeHeader).toHaveClass('w-20');
+    expect(sizeHeader).toHaveClass('w-24', 'text-right', 'tabular-nums');
+    expect(actionHeader).toHaveClass('w-16', 'text-right');
+  });
+
+  it('right-aligns numeric cells with tabular spacing', () => {
+    renderWithTranslations(<FilesTable files={[baseFile]} />);
+
+    const sizeCell = screen.getByText('1.0 KB').closest('td');
+
+    expect(sizeCell).not.toBeNull();
+    expect(sizeCell).toHaveClass('text-right', 'tabular-nums');
   });
 });
