@@ -1,0 +1,186 @@
+import { Icon } from '@stem-packer/ui';
+import type { AudioFileItem } from '../../shared/preferences';
+import type { PackingProgressEvent, PackingResult } from '../../shared/packing';
+import type { InfoTextFormState } from '../../shared/info';
+import { DragAndDropArea } from './DragAndDropArea';
+import { FilesTable } from './FilesTable';
+import { MetadataForm } from './MetadataForm';
+import { PackingProgress } from './PackingProgress';
+import { PackingStatusAlerts, type PackingStatus } from './PackingStatusAlerts';
+import { SelectionSummary, calculateTotalSize } from './SelectionSummary';
+import { useTranslation } from '../hooks/useTranslation';
+
+interface PackCardProps {
+  active: boolean;
+  panelId: string;
+  labelledBy: string;
+  files: AudioFileItem[];
+  isScanning: boolean;
+  onDrop: (paths: string[]) => Promise<void> | void;
+  onChooseFolder: () => Promise<void>;
+  selectedFolder: string | null;
+  ignoredCount: number;
+  metadataFields: InfoTextFormState;
+  onMetadataChange: (update: Partial<InfoTextFormState>) => void;
+  onArtistBlur: () => void | Promise<void>;
+  onStartPacking: () => Promise<void> | void;
+  canStartPacking: boolean;
+  packingStatus: PackingStatus;
+  packingProgress: PackingProgressEvent | null;
+  onCancelPacking: () => Promise<void> | void;
+  isCancellingPacking: boolean;
+  packingError: { name: string; message: string } | null;
+  onDismissPackingError: () => void;
+  lastPackResult: PackingResult | null;
+  onDismissPackingNotice: () => void;
+  onReset: () => Promise<void> | void;
+}
+
+export function PackCard({
+  active,
+  panelId,
+  labelledBy,
+  files,
+  isScanning,
+  onDrop,
+  onChooseFolder,
+  selectedFolder,
+  ignoredCount,
+  metadataFields,
+  onMetadataChange,
+  onArtistBlur,
+  onStartPacking,
+  canStartPacking,
+  packingStatus,
+  packingProgress,
+  onCancelPacking,
+  isCancellingPacking,
+  packingError,
+  onDismissPackingError,
+  lastPackResult,
+  onDismissPackingNotice,
+  onReset
+}: PackCardProps) {
+  const { t } = useTranslation();
+
+  const percentComplete = Math.round(packingProgress?.percent ?? 0);
+  const showProgress = packingStatus === 'packing';
+  const hasFiles = files.length > 0;
+  const hasSelection = Boolean(selectedFolder) && hasFiles;
+  const showSelectionControls = !hasSelection;
+  const totalSize = calculateTotalSize(files);
+  const chooseButtonPlaceholder = (
+    <div className="btn btn-primary invisible select-none" aria-hidden="true">
+      <Icon name="folder_open" className="text-2xl" />
+      <span>{t('button_choose_folder')}</span>
+    </div>
+  );
+  const canReset =
+    hasSelection ||
+    ignoredCount > 0 ||
+    packingStatus !== 'idle' ||
+    packingProgress !== null ||
+    packingError !== null ||
+    lastPackResult !== null;
+
+  return (
+    <section
+      id={panelId}
+      role="tabpanel"
+      aria-labelledby={labelledBy}
+      hidden={!active}
+      className="w-full"
+    >
+      <div className="card bg-base-200 shadow-xl">
+        <div className="card-body">
+          <div className="flex flex-col gap-4">
+            {showSelectionControls ? (
+              <DragAndDropArea isActive={false} onDrop={onDrop} disabled={isScanning} />
+            ) : selectedFolder ? (
+              <SelectionSummary
+                folderPath={selectedFolder}
+                fileCount={files.length}
+                totalSize={totalSize}
+                ignoredCount={ignoredCount}
+              />
+            ) : null}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
+                <span>
+                  {selectedFolder
+                    ? t('selected_folder_label', { path: selectedFolder })
+                    : t('selected_folder_empty')}
+                </span>
+                {ignoredCount > 0 ? (
+                  <span className="badge badge-outline badge-secondary">
+                    {t('badge_ignored_count', { count: ignoredCount })}
+                  </span>
+                ) : null}
+              </div>
+              {showSelectionControls ? (
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => {
+                    void onChooseFolder();
+                  }}
+                  disabled={isScanning}
+                >
+                  <Icon name="folder_open" className="text-2xl" />
+                  <span>{isScanning ? t('button_scanning') : t('button_choose_folder')}</span>
+                </button>
+              ) : (
+                chooseButtonPlaceholder
+              )}
+            </div>
+            <FilesTable files={files} />
+            <MetadataForm fields={metadataFields} onChange={onMetadataChange} onArtistBlur={onArtistBlur} />
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <button
+                className="btn btn-outline"
+                type="button"
+                onClick={() => {
+                  void onReset();
+                }}
+                disabled={isScanning || packingStatus === 'packing' || !canReset}
+              >
+                <Icon name="restart_alt" className="text-2xl" />
+                <span>{t('button_reset')}</span>
+              </button>
+              <button
+                className="btn btn-primary"
+                type="button"
+                onClick={() => {
+                  void onStartPacking();
+                }}
+                disabled={!canStartPacking}
+              >
+                <Icon name="inventory_2" className="text-2xl" />
+                <span>
+                  {packingStatus === 'packing'
+                    ? t('button_packing_active')
+                    : t('button_start_packing')}
+                </span>
+              </button>
+            </div>
+            {showProgress ? (
+              <PackingProgress
+                progress={packingProgress}
+                percentComplete={percentComplete}
+                onCancel={onCancelPacking}
+                isCancelling={isCancellingPacking}
+              />
+            ) : null}
+            <PackingStatusAlerts
+              status={packingStatus}
+              packingError={packingError}
+              lastPackResult={lastPackResult}
+              onDismissNotice={onDismissPackingNotice}
+              onDismissError={onDismissPackingError}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
