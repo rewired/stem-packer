@@ -4,6 +4,8 @@ All notable changes to StemPacker will be documented in this file.
 
 ## [Unreleased]
 ### Added
+- Persisted the desktop window size and position, defaulting to a 1000×700 viewport so restarts
+  reopen exactly where the user left off.
 - Displayed selection paths with a middle ellipsis and copy shortcut that surfaces a clipboard
   toast.
 - Displayed inline pack progress directly on the toolbar button with a live percent label,
