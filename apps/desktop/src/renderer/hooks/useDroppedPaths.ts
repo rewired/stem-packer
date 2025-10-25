@@ -67,6 +67,10 @@ export function resolveDroppedFolder(paths: string[]): string | null {
     return null;
   }
 
+  if (trimmed.length === 1) {
+    return stripDirectorySeparators(trimmed[0]);
+  }
+
   const directoryCandidates = trimmed
     .filter((path) => /[\\/]+$/.test(path))
     .map((path) => stripDirectorySeparators(path));
