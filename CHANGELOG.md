@@ -42,6 +42,7 @@ All notable changes to StemPacker will be documented in this file.
 - Ensured renderer notifications render Material icons and expanded ESLint checks to prevent emojis in TSX/MDX content.
 - Stopped persisting the last scanned input directory so aborting collision or split prompts no longer mutates saved preferences.
 - Moved the renderer pack workflow and preferences form into localized DaisyUI tabs with updated layout coverage.
+- Removed the default ignore glob list so audio scans depend solely on the configured extensions when selecting candidates.
 
 ### Fixed
 - Prevented dropped files from navigating the Electron window so the drag-and-drop importer
