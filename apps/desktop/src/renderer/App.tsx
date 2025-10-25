@@ -606,12 +606,12 @@ function PackCard({
                 chooseButtonPlaceholder
               )}
             </div>
+            <FilesTable files={files} />
             <MetadataForm
               fields={metadataFields}
               onChange={onMetadataChange}
               onArtistBlur={onArtistBlur}
             />
-            <FilesTable files={files} />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <button
                 className="btn btn-outline"
