@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@stem-packer/ui';
 import type { TranslationKey } from './hooks/useTranslation';
 import { TranslationProvider, useTranslation } from './hooks/useTranslation';
@@ -20,7 +20,7 @@ import { Header } from './components/Header';
 import { AboutModal } from './components/AboutModal';
 import { CollisionDialog, type CollisionPrompt } from './components/CollisionDialog';
 import { SplitDecisionDialog, type SplitDecisionPrompt } from './components/SplitDecisionDialog';
-import { resolveDroppedFolder } from './hooks/useDroppedPaths';
+import { extractPathsFromDomDrop, resolveDroppedFolder } from './hooks/useDroppedPaths';
 import type { PackingStatus } from './components/PackingStatusAlerts';
 
 interface PerformScanOptions {
@@ -37,6 +37,7 @@ function AppContent() {
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [files, setFiles] = useState<AudioFileItem[]>([]);
   const [ignoredCount, setIgnoredCount] = useState(0);
+  const [hasCompletedScan, setHasCompletedScan] = useState(false);
   const [monoSplitTooLargeFiles, setMonoSplitTooLargeFiles] = useState<AudioFileItem[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -52,24 +53,6 @@ function AppContent() {
   const [lastPackResult, setLastPackResult] = useState<PackingResult | null>(null);
   const [isCancellingPacking, setIsCancellingPacking] = useState(false);
   const { toast, showToast } = useToast();
-
-  useEffect(() => {
-    const preventWindowNavigation = (event: DragEvent) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (event.dataTransfer) {
-        event.dataTransfer.dropEffect = 'copy';
-      }
-    };
-
-    window.addEventListener('dragover', preventWindowNavigation);
-    window.addEventListener('drop', preventWindowNavigation);
-
-    return () => {
-      window.removeEventListener('dragover', preventWindowNavigation);
-      window.removeEventListener('drop', preventWindowNavigation);
-    };
-  }, []);
 
   useEffect(() => {
     async function bootstrap() {
@@ -162,6 +145,7 @@ function AppContent() {
   ) => {
     setIsScanning(true);
     setIgnoredCount(0);
+    setHasCompletedScan(false);
     setCollisionPrompt(null);
     setSplitDecisionPrompt(null);
     setPackingStatus('idle');
@@ -174,20 +158,18 @@ function AppContent() {
     setMonoSplitTooLargeFiles([]);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
+      setHasCompletedScan(true);
+      setSelectedFolder(result.folderPath);
+      setIgnoredCount(result.ignoredCount);
+      setMonoSplitTooLargeFiles(result.monoSplitTooLargeFiles ?? []);
+
       if (result.files.length === 0) {
-        const warningMessage =
-          result.ignoredCount > 0
-            ? t('toast_scan_no_audio_with_ignored', { ignoredCount: result.ignoredCount })
-            : t('toast_scan_no_audio');
-        showToast(warningMessage);
-        await resetToIdle({ toastKey: null });
+        showToast(t('toast_no_supported_audio_in_folder'), 'error');
+        setFiles([]);
         return;
       }
 
       setFiles(result.files);
-      setSelectedFolder(result.folderPath);
-      setIgnoredCount(result.ignoredCount);
-      setMonoSplitTooLargeFiles(result.monoSplitTooLargeFiles ?? []);
       const activePreferences = overridePreferences ?? preferences ?? DEFAULT_PREFERENCES;
 
       const estimate = estimateArchiveCount(result.files, activePreferences);
@@ -271,6 +253,48 @@ function AppContent() {
 
     await performScan(folderPath);
   };
+  const handleDropRef = useRef(handleDrop);
+  useEffect(() => {
+    handleDropRef.current = handleDrop;
+  }, [handleDrop]);
+
+  useEffect(() => {
+    const handleWindowDragOver = (event: DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = activeTab === 'pack' && !isScanning ? 'copy' : 'none';
+      }
+    };
+
+    const handleWindowDrop = (event: DragEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (activeTab !== 'pack' || isScanning) {
+        return;
+      }
+
+      const paths = extractPathsFromDomDrop(event);
+      if (paths.length === 0) {
+        return;
+      }
+
+      const dropHandler = handleDropRef.current;
+      if (!dropHandler) {
+        return;
+      }
+
+      void dropHandler(paths);
+    };
+
+    window.addEventListener('dragover', handleWindowDragOver);
+    window.addEventListener('drop', handleWindowDrop);
+
+    return () => {
+      window.removeEventListener('dragover', handleWindowDragOver);
+      window.removeEventListener('drop', handleWindowDrop);
+    };
+  }, [activeTab, isScanning]);
 
   const handleChooseFolder = async () => {
     const result = await window.stemPacker.chooseInputFolder();
@@ -319,6 +343,7 @@ function AppContent() {
     setSelectedFolder(null);
     setIgnoredCount(0);
     setMonoSplitTooLargeFiles([]);
+    setHasCompletedScan(false);
     setPackingStatus('idle');
     setPackingProgress(null);
     setPackingError(null);
@@ -451,6 +476,21 @@ function AppContent() {
     !isScanning &&
     packingStatus !== 'packing';
   const isZipFormat = (preferences?.format ?? DEFAULT_PREFERENCES.format) === 'zip';
+  const toastVariantClasses = {
+    info: 'alert-info',
+    success: 'alert-success',
+    warning: 'alert-warning',
+    error: 'alert-error'
+  } as const;
+  const toastIcons = {
+    info: 'info',
+    success: 'check_circle',
+    warning: 'warning',
+    error: 'error'
+  } as const;
+  const toastVariant = toast.variant ?? 'info';
+  const toastClassName = toastVariantClasses[toastVariant];
+  const toastIconName = toastIcons[toastVariant];
 
   return (
     <main className="min-h-screen bg-base-300 text-base-content">
@@ -510,6 +550,7 @@ function AppContent() {
                 void resetToIdle();
               }}
               isZipFormat={isZipFormat}
+              showEmptyState={hasCompletedScan && !isScanning}
             />
             <PreferencesCard
               active={activeTab === 'preferences'}
@@ -526,8 +567,8 @@ function AppContent() {
 
       <div className={toast.visible && toast.message ? 'toast toast-start' : 'hidden'}>
         {toast.message ? (
-          <div className="alert alert-info">
-            <Icon name="info" className="text-xl" />
+          <div className={`alert ${toastClassName}`}>
+            <Icon name={toastIconName} className="text-xl" />
             <span>{toast.message}</span>
           </div>
         ) : null}

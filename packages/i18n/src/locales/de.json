@@ -28,6 +28,8 @@
   "selected_folder_label": "Ausgewählter Ordner: {path}",
   "selected_folder_empty": "Noch kein Ordner ausgewählt.",
   "table_empty_state": "Keine unterstützten Audiodateien im Ordner gefunden.",
+  "no_supported_audio_in_folder": "Keine unterstützten Audiodateien im Ordner gefunden.",
+  "toast_no_supported_audio_in_folder": "Keine unterstützten Audiodateien im Ordner gefunden.",
   "table_column_name": "Name",
   "table_column_type": "Typ",
   "table_column_size": "Größe",

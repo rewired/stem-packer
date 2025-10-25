@@ -25,33 +25,73 @@ function normalizeFileUri(uri: string): string | null {
   }
 }
 
-function extractDroppedPaths(event: ReactDragEvent<HTMLDivElement>): string[] {
-  const dataTransfer = event.dataTransfer;
+function parseUriList(dataTransfer: DataTransfer): string[] {
+  const uriList = dataTransfer.getData('text/uri-list');
+  if (!uriList) {
+    return [];
+  }
+
+  return uriList
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0 && !line.startsWith('#'))
+    .map(normalizeFileUri)
+    .filter((value): value is string => Boolean(value));
+}
+
+function parsePlainText(dataTransfer: DataTransfer): string[] {
+  const text = dataTransfer.getData('text/plain');
+  if (!text) {
+    return [];
+  }
+
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      if (line.startsWith('file://')) {
+        return normalizeFileUri(line);
+      }
+      return line;
+    })
+    .filter((value): value is string => Boolean(value));
+}
+
+function parseFileList(dataTransfer: DataTransfer): string[] {
+  if (!dataTransfer.files || dataTransfer.files.length === 0) {
+    return [];
+  }
+
+  return Array.from(dataTransfer.files)
+    .map((file) => (file as File & { path?: string }).path)
+    .filter((path): path is string => typeof path === 'string' && path.length > 0);
+}
+
+export function extractPathsFromDataTransfer(dataTransfer: DataTransfer | null): string[] {
   if (!dataTransfer) {
     return [];
   }
 
-  const uriList = dataTransfer.getData('text/uri-list');
-  if (uriList) {
-    const fromUris = uriList
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith('#'))
-      .map(normalizeFileUri)
-      .filter((value): value is string => Boolean(value));
-
-    if (fromUris.length > 0) {
-      return fromUris;
-    }
+  const fromUris = parseUriList(dataTransfer);
+  if (fromUris.length > 0) {
+    return fromUris;
   }
 
-  if (dataTransfer.files && dataTransfer.files.length > 0) {
-    return Array.from(dataTransfer.files)
-      .map((file) => (file as File & { path?: string }).path)
-      .filter((path): path is string => typeof path === 'string' && path.length > 0);
+  const fromPlainText = parsePlainText(dataTransfer);
+  if (fromPlainText.length > 0) {
+    return fromPlainText;
   }
 
-  return [];
+  return parseFileList(dataTransfer);
+}
+
+function extractDroppedPaths(event: ReactDragEvent<HTMLDivElement>): string[] {
+  return extractPathsFromDataTransfer(event.dataTransfer ?? null);
+}
+
+export function extractPathsFromDomDrop(event: DragEvent): string[] {
+  return extractPathsFromDataTransfer(event.dataTransfer ?? null);
 }
 
 export function resolveDroppedFolder(paths: string[]): string | null {

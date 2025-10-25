@@ -36,6 +36,7 @@ interface PackCardProps {
   onDismissPackingNotice: () => void;
   onReset: () => Promise<void> | void;
   isZipFormat: boolean;
+  showEmptyState: boolean;
 }
 
 export function PackCard({
@@ -63,7 +64,8 @@ export function PackCard({
   lastPackResult,
   onDismissPackingNotice,
   onReset,
-  isZipFormat
+  isZipFormat,
+  showEmptyState
 }: PackCardProps) {
   const { t } = useTranslation();
 
@@ -169,6 +171,8 @@ export function PackCard({
             <FilesTable
               files={files}
               warningFiles={showMonoSplitWarning ? monoSplitTooLargeFiles : undefined}
+              showEmptyState={showEmptyState}
+              emptyStateKey="no_supported_audio_in_folder"
             />
             <MetadataForm fields={metadataFields} onChange={onMetadataChange} onArtistBlur={onArtistBlur} />
             <div className="flex flex-wrap items-center justify-between gap-3">
