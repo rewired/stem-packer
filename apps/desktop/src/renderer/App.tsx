@@ -455,9 +455,6 @@ function AppContent() {
       ]);
       setAppInfo(info);
       setPreferences(prefs);
-      if (prefs.lastInputDir) {
-        await performScan(prefs.lastInputDir, prefs);
-      }
     }
 
     bootstrap().catch((error) => {
@@ -481,15 +478,6 @@ function AppContent() {
       setSelectedFolder(result.folderPath);
       setIgnoredCount(result.ignoredCount);
       const activePreferences = overridePreferences ?? preferences ?? DEFAULT_PREFERENCES;
-      setPreferences((current) => {
-        if (current) {
-          return { ...current, lastInputDir: result.folderPath };
-        }
-        if (overridePreferences) {
-          return { ...overridePreferences, lastInputDir: result.folderPath };
-        }
-        return current;
-      });
 
       const estimate = estimateArchiveCount(result.files, activePreferences);
       const hasSplits = estimate.splitCount > 0;
@@ -601,14 +589,7 @@ function AppContent() {
     setFiles([]);
     setSelectedFolder(null);
     setIgnoredCount(0);
-    setPreferences((current) => (current ? { ...current, lastInputDir: undefined } : current));
     showToast(t('toast_action_cancelled'));
-
-    try {
-      await window.stemPacker.savePreferences({ lastInputDir: undefined });
-    } catch (error) {
-      console.error('Failed to clear last input directory', error);
-    }
   };
 
   const handleAbortCollisions = async () => {

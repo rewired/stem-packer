@@ -16,8 +16,7 @@ const basePreferences: Preferences = {
   outputDir: '/tmp/stems',
   auto_split_multichannel_to_mono: false,
   ignore_enabled: true,
-  ignore_globs: ['**/.DS_Store'],
-  lastInputDir: '/projects/session'
+  ignore_globs: ['**/.DS_Store']
 };
 
 const scanResult = {
@@ -49,7 +48,10 @@ describe('overwrite / abort flow', () => {
       getAppInfo: vi.fn().mockResolvedValue({ name: 'StemPacker', version: '0.0.0-test' }),
       getPreferences: vi.fn().mockResolvedValue(basePreferences),
       scanFolder: vi.fn().mockResolvedValue(scanResult),
-      chooseInputFolder: vi.fn(),
+      chooseInputFolder: vi.fn().mockResolvedValue({
+        canceled: false,
+        folderPath: scanResult.folderPath
+      }),
       savePreferences: savePreferences.mockResolvedValue(basePreferences),
       detectCollisions: detectCollisions,
       overwriteCollisions: overwriteCollisions.mockResolvedValue({
@@ -79,6 +81,8 @@ describe('overwrite / abort flow', () => {
 
     render(<App />);
 
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Folder' }));
+
     await screen.findByText('StemPacker outputs already exist');
 
     await userEvent.click(screen.getByRole('button', { name: 'Ignore and overwrite', hidden: true }));
@@ -107,6 +111,8 @@ describe('overwrite / abort flow', () => {
 
     render(<App />);
 
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Folder' }));
+
     const heading = await screen.findByText('StemPacker outputs already exist');
     const dialog = heading.closest('dialog');
     expect(dialog).not.toBeNull();
@@ -116,15 +122,12 @@ describe('overwrite / abort flow', () => {
       within(dialog as HTMLElement).getAllByRole('button', { name: 'Abort', hidden: true })[0]
     );
 
-    await waitFor(() => {
-      expect(savePreferences).toHaveBeenCalledWith({ lastInputDir: undefined });
-    });
-
     await screen.findByText('Action cancelled.');
     await waitFor(() => {
       expect(screen.queryAllByText('Kick.wav')).toHaveLength(0);
     });
     expect(detectCollisions).toHaveBeenCalledTimes(1);
     expect(overwriteCollisions).not.toHaveBeenCalled();
+    expect(savePreferences).not.toHaveBeenCalled();
   });
 });

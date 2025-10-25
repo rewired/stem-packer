@@ -12,8 +12,7 @@ const basePreferences: Preferences = {
   outputDir: '/tmp/stems',
   auto_split_multichannel_to_mono: false,
   ignore_enabled: true,
-  ignore_globs: ['**/.DS_Store'],
-  lastInputDir: '/projects/session'
+  ignore_globs: ['**/.DS_Store']
 };
 
 const scanResult = {
@@ -72,7 +71,10 @@ describe('multichannel split decision flow', () => {
       getAppInfo: vi.fn().mockResolvedValue({ name: 'StemPacker', version: '0.0.0-test' }),
       getPreferences: vi.fn().mockResolvedValue(basePreferences),
       scanFolder,
-      chooseInputFolder: vi.fn(),
+      chooseInputFolder: vi.fn().mockResolvedValue({
+        canceled: false,
+        folderPath: scanResult.folderPath
+      }),
       savePreferences,
       detectCollisions,
       overwriteCollisions: overwriteCollisions as StemPackerApi['overwriteCollisions'],
@@ -90,6 +92,8 @@ describe('multichannel split decision flow', () => {
 
   it('allows enabling mono splits directly from the dialog', async () => {
     render(<App />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Folder' }));
 
     const heading = await screen.findByText('Oversized multichannel stems detected');
     const dialog = heading.closest('dialog');
@@ -117,6 +121,8 @@ describe('multichannel split decision flow', () => {
 
   it('switches to 7z volumes without re-prompting', async () => {
     render(<App />);
+
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Folder' }));
 
     const heading = await screen.findByText('Oversized multichannel stems detected');
     const dialog = heading.closest('dialog');
@@ -148,6 +154,8 @@ describe('multichannel split decision flow', () => {
   it('returns to the idle state when cancelled', async () => {
     render(<App />);
 
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Folder' }));
+
     const heading = await screen.findByText('Oversized multichannel stems detected');
     const dialog = heading.closest('dialog');
     expect(dialog).not.toBeNull();
@@ -159,12 +167,9 @@ describe('multichannel split decision flow', () => {
 
     await userEvent.click(cancelButtons[0]);
 
-    await waitFor(() => {
-      expect(savePreferences).toHaveBeenCalledWith({ lastInputDir: undefined });
-    });
-
     await screen.findByText('Action cancelled.');
     expect(screen.queryByText('Oversized multichannel stems detected')).not.toBeInTheDocument();
     expect(screen.queryAllByText('Mixdown.wav')).toHaveLength(0);
+    expect(savePreferences).not.toHaveBeenCalled();
   });
 });
