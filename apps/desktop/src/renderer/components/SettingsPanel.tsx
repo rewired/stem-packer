@@ -30,7 +30,7 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
       <div className="grid gap-4 md:grid-cols-2">
         <label className="form-control">
           <div className="label">
-            <span className="label-text">{t('settings_target_size')}</span>
+            <span className="label-text sr-only">{t('settings_target_size')}</span>
             <span className="label-text-alt text-base-content/60">{t('settings_target_size_hint')}</span>
           </div>
           <input
@@ -40,6 +40,7 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
             className="input input-bordered"
             value={preferences.targetSizeMB}
             onChange={(event) => handleChange('targetSizeMB', Number(event.target.value))}
+            placeholder={t('settings_target_size')}
           />
         </label>
         <label className="form-control">
@@ -58,7 +59,7 @@ export function SettingsPanel({ preferences, onChange, onSave, isSaving }: Setti
       </div>
       <label className="form-control">
         <div className="label">
-          <span className="label-text">{t('settings_output_directory')}</span>
+          <span className="label-text sr-only">{t('settings_output_directory')}</span>
           <span className="label-text-alt text-base-content/60">{t('settings_output_directory_hint')}</span>
         </div>
         <input
