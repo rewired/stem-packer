@@ -20,7 +20,14 @@ describe('renderer layout tabs', () => {
       getVersion: () => '0.0.0-test',
       getAppInfo: vi.fn().mockResolvedValue({ name: 'StemPacker', version: '0.0.0-test' }),
       getPreferences: vi.fn().mockResolvedValue({ ...basePreferences }),
-      scanFolder: vi.fn().mockResolvedValue({ folderPath: '', ignoredCount: 0, files: [] }),
+      scanFolder: vi
+        .fn()
+        .mockResolvedValue({
+          folderPath: '',
+          ignoredCount: 0,
+          files: [],
+          monoSplitTooLargeFiles: []
+        }),
       chooseInputFolder: vi.fn().mockResolvedValue({ canceled: true, folderPath: '' }),
       savePreferences: vi.fn().mockImplementation(async (update: Partial<Preferences>) => ({
         ...basePreferences,

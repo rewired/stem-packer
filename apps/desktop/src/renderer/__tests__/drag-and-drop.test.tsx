@@ -29,7 +29,12 @@ describe('renderer drag-and-drop handling', () => {
   beforeEach(() => {
     scanFolderMock = vi
       .fn()
-      .mockResolvedValue({ folderPath: '/input/session', ignoredCount: 0, files: scanFiles });
+      .mockResolvedValue({
+        folderPath: '/input/session',
+        ignoredCount: 0,
+        files: scanFiles,
+        monoSplitTooLargeFiles: []
+      });
 
     const api: StemPackerApi = {
       getVersion: () => '0.0.0-test',

@@ -37,6 +37,7 @@ function AppContent() {
   const [preferences, setPreferences] = useState<Preferences | null>(null);
   const [files, setFiles] = useState<AudioFileItem[]>([]);
   const [ignoredCount, setIgnoredCount] = useState(0);
+  const [monoSplitTooLargeFiles, setMonoSplitTooLargeFiles] = useState<AudioFileItem[]>([]);
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isSavingPreferences, setIsSavingPreferences] = useState(false);
@@ -170,6 +171,7 @@ function AppContent() {
     setIsCancellingPacking(false);
     setFiles([]);
     setSelectedFolder(null);
+    setMonoSplitTooLargeFiles([]);
     try {
       const result: ScanResult = await window.stemPacker.scanFolder(folderPath);
       if (result.files.length === 0) {
@@ -185,6 +187,7 @@ function AppContent() {
       setFiles(result.files);
       setSelectedFolder(result.folderPath);
       setIgnoredCount(result.ignoredCount);
+      setMonoSplitTooLargeFiles(result.monoSplitTooLargeFiles ?? []);
       const activePreferences = overridePreferences ?? preferences ?? DEFAULT_PREFERENCES;
 
       const estimate = estimateArchiveCount(result.files, activePreferences);
@@ -206,6 +209,17 @@ function AppContent() {
           ignoredCount: result.ignoredCount
         })
       );
+
+      if (
+        activePreferences.format === 'zip' &&
+        (result.monoSplitTooLargeFiles?.length ?? 0) > 0
+      ) {
+        showToast(
+          t('toast_zip_mono_split_warning', {
+            count: result.monoSplitTooLargeFiles.length
+          })
+        );
+      }
 
       const collisionPayload: CollisionCheckPayload = {
         inputFolder: result.folderPath,
@@ -304,6 +318,7 @@ function AppContent() {
     setFiles([]);
     setSelectedFolder(null);
     setIgnoredCount(0);
+    setMonoSplitTooLargeFiles([]);
     setPackingStatus('idle');
     setPackingProgress(null);
     setPackingError(null);
@@ -435,6 +450,7 @@ function AppContent() {
     Boolean(preferences) &&
     !isScanning &&
     packingStatus !== 'packing';
+  const isZipFormat = (preferences?.format ?? DEFAULT_PREFERENCES.format) === 'zip';
 
   return (
     <main className="min-h-screen bg-base-300 text-base-content">
@@ -471,6 +487,7 @@ function AppContent() {
               panelId="pack-panel"
               labelledBy="pack-tab"
               files={files}
+              monoSplitTooLargeFiles={monoSplitTooLargeFiles}
               isScanning={isScanning}
               onDrop={handleDrop}
               onChooseFolder={handleChooseFolder}
@@ -492,6 +509,7 @@ function AppContent() {
               onReset={() => {
                 void resetToIdle();
               }}
+              isZipFormat={isZipFormat}
             />
             <PreferencesCard
               active={activeTab === 'preferences'}

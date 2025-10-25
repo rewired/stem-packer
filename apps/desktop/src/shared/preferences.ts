@@ -44,6 +44,7 @@ export interface ScanResult {
   folderPath: string;
   files: AudioFileItem[];
   ignoredCount: number;
+  monoSplitTooLargeFiles: AudioFileItem[];
 }
 
 export interface ChooseFolderResult {

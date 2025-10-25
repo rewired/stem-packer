@@ -27,7 +27,8 @@ const scanResult = {
       fullPath: '/projects/session/Mixdown.wav',
       channels: 2
     }
-  ]
+  ],
+  monoSplitTooLargeFiles: []
 };
 
 describe('multichannel split decision flow', () => {

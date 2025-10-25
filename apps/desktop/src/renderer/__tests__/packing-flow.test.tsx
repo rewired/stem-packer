@@ -39,7 +39,14 @@ describe('renderer packing workflow', () => {
       getVersion: () => '0.0.0-test',
       getAppInfo: vi.fn().mockResolvedValue({ name: 'StemPacker', version: '0.0.0-test' }),
       getPreferences: vi.fn().mockResolvedValue({ ...basePreferences }),
-      scanFolder: vi.fn().mockResolvedValue({ folderPath: '/input', ignoredCount: 0, files: scanFiles }),
+      scanFolder: vi
+        .fn()
+        .mockResolvedValue({
+          folderPath: '/input',
+          ignoredCount: 0,
+          files: scanFiles,
+          monoSplitTooLargeFiles: []
+        }),
       chooseInputFolder: vi.fn().mockResolvedValue({ canceled: false, folderPath: '/input' }),
       savePreferences: vi.fn().mockImplementation(async (update: Partial<Preferences>) => ({
         ...basePreferences,
@@ -186,6 +193,41 @@ describe('renderer packing workflow', () => {
       expect(screen.getByText('Packing failed. Try again.')).toBeInTheDocument();
       expect(screen.getByText('Something went wrong')).toBeInTheDocument();
     });
+  });
+
+  it('shows a ZIP mono split warning but keeps the pack button enabled', async () => {
+    const scanFolderMock = window.stemPacker.scanFolder as unknown as ReturnType<
+      typeof vi.fn
+    >;
+    scanFolderMock.mockResolvedValueOnce({
+      folderPath: '/input',
+      ignoredCount: 0,
+      files: scanFiles,
+      monoSplitTooLargeFiles: [
+        {
+          name: 'wide_mix.wav',
+          relativePath: 'wide_mix.wav',
+          extension: '.wav',
+          sizeBytes: 80 * 1024 * 1024,
+          fullPath: '/input/wide_mix.wav',
+          channels: 2
+        }
+      ]
+    });
+
+    render(<App />);
+
+    const chooseFolderButton = await screen.findByRole('button', { name: 'Choose Folder' });
+    await userEvent.click(chooseFolderButton);
+
+    await screen.findByText('Some files exceed the ZIP mono split limit');
+    await screen.findByText('wide_mix.wav');
+    await screen.findByText(
+      'ZIP mono split unavailable for 1 file(s). Consider switching to 7z volumes.'
+    );
+
+    const packButton = await screen.findByRole('button', { name: 'Start Packing' });
+    expect(packButton).toBeEnabled();
   });
 });
 

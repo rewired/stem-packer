@@ -37,6 +37,8 @@ describe('estimateArchiveCount', () => {
     expect(estimateB.splitCount).toBe(0);
     expect(estimateA.splitCandidateCount).toBe(0);
     expect(estimateB.splitCandidateCount).toBe(0);
+    expect(estimateA.monoSplitTooLargeFiles).toHaveLength(0);
+    expect(estimateB.monoSplitTooLargeFiles).toHaveLength(0);
   });
 
   it('accounts for multichannel mono splits when enabled', () => {
@@ -63,12 +65,14 @@ describe('estimateArchiveCount', () => {
     expect(withoutSplit.splitCandidateCount).toBe(1);
     expect(withSplit.splitCount).toBe(2);
     expect(withSplit.splitCandidateCount).toBe(1);
+    expect(withoutSplit.monoSplitTooLargeFiles).toHaveLength(0);
+    expect(withSplit.monoSplitTooLargeFiles).toHaveLength(0);
     expect(withSplit.totalBytes).toBeGreaterThan(withoutSplit.totalBytes);
     expect(withSplit.zipArchiveCount).toBeGreaterThanOrEqual(withoutSplit.zipArchiveCount);
     expect(withSplit.sevenZipVolumeCount).toBeGreaterThanOrEqual(withoutSplit.sevenZipVolumeCount);
   });
 
-  it('ignores split candidates when mono outputs would still exceed the target', () => {
+  it('records split candidates that exceed the mono target size', () => {
     const largeFile = makeFile({
       name: 'orchestra.wav',
       relativePath: 'orchestra.wav',
@@ -84,5 +88,8 @@ describe('estimateArchiveCount', () => {
 
     expect(estimate.splitCandidateCount).toBe(1);
     expect(estimate.splitCount).toBe(0);
+    expect(estimate.monoSplitTooLargeFiles.map((file) => file.relativePath)).toEqual([
+      'orchestra.wav'
+    ]);
   });
 });

@@ -51,6 +51,7 @@ describe('ignore integration', () => {
       'track1.wav'
     ]);
     expect(result.ignoredCount).toBe(5);
+    expect(result.monoSplitTooLargeFiles).toHaveLength(0);
 
     const manualList: AudioFileItem[] = [
       ...result.files,

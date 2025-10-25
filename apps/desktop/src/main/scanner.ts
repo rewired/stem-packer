@@ -8,6 +8,7 @@ import {
   type ScanResult
 } from '../shared/preferences';
 import { createIgnoreMatcher, normalizeToPosixPath } from './ignore';
+import { estimateArchiveCount } from './estimator';
 
 const audioExtensions = new Set(AUDIO_EXTENSIONS.map((extension) => extension.toLowerCase()));
 
@@ -79,9 +80,12 @@ export async function scanAudioFiles(
 
   files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
 
+  const { monoSplitTooLargeFiles } = estimateArchiveCount(files, preferences);
+
   return {
     folderPath,
     files,
-    ignoredCount
+    ignoredCount,
+    monoSplitTooLargeFiles
   };
 }

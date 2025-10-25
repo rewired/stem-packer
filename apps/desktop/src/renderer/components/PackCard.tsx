@@ -15,6 +15,7 @@ interface PackCardProps {
   panelId: string;
   labelledBy: string;
   files: AudioFileItem[];
+  monoSplitTooLargeFiles: AudioFileItem[];
   isScanning: boolean;
   onDrop: (paths: string[]) => Promise<void> | void;
   onChooseFolder: () => Promise<void>;
@@ -34,6 +35,7 @@ interface PackCardProps {
   lastPackResult: PackingResult | null;
   onDismissPackingNotice: () => void;
   onReset: () => Promise<void> | void;
+  isZipFormat: boolean;
 }
 
 export function PackCard({
@@ -41,6 +43,7 @@ export function PackCard({
   panelId,
   labelledBy,
   files,
+  monoSplitTooLargeFiles,
   isScanning,
   onDrop,
   onChooseFolder,
@@ -59,7 +62,8 @@ export function PackCard({
   onDismissPackingError,
   lastPackResult,
   onDismissPackingNotice,
-  onReset
+  onReset,
+  isZipFormat
 }: PackCardProps) {
   const { t } = useTranslation();
 
@@ -69,6 +73,7 @@ export function PackCard({
   const hasSelection = Boolean(selectedFolder) && hasFiles;
   const showSelectionControls = !hasSelection;
   const totalSize = calculateTotalSize(files);
+  const showMonoSplitWarning = isZipFormat && monoSplitTooLargeFiles.length > 0;
   const chooseButtonPlaceholder = (
     <div className="btn btn-primary invisible select-none" aria-hidden="true">
       <Icon name="folder_open" className="text-2xl" />
@@ -104,6 +109,34 @@ export function PackCard({
                 ignoredCount={ignoredCount}
               />
             ) : null}
+            {showMonoSplitWarning ? (
+              <div className="alert alert-warning flex flex-col gap-3">
+                <div className="flex items-start gap-3">
+                  <Icon name="warning" className="text-2xl" />
+                  <div className="space-y-1">
+                    <p className="font-semibold">{t('warning_zip_mono_split_title')}</p>
+                    <p className="text-sm text-base-content/80">
+                      {t('warning_zip_mono_split_description')}
+                    </p>
+                  </div>
+                </div>
+                <div
+                  className="flex flex-wrap gap-2"
+                  role="list"
+                  aria-label={t('warning_zip_mono_split_list_label')}
+                >
+                  {monoSplitTooLargeFiles.map((file) => (
+                    <span
+                      key={file.relativePath}
+                      className="badge badge-warning badge-outline"
+                      role="listitem"
+                    >
+                      {file.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
                 <span>
@@ -133,7 +166,10 @@ export function PackCard({
                 chooseButtonPlaceholder
               )}
             </div>
-            <FilesTable files={files} />
+            <FilesTable
+              files={files}
+              warningFiles={showMonoSplitWarning ? monoSplitTooLargeFiles : undefined}
+            />
             <MetadataForm fields={metadataFields} onChange={onMetadataChange} onArtistBlur={onArtistBlur} />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <button
