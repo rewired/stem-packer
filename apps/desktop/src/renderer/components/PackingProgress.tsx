@@ -18,7 +18,7 @@ export function PackingProgress({ progress, percentComplete, onCancel, isCancell
 
   return (
     <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div className="space-y-2">
           <p className="font-semibold">{t('packing_progress_title')}</p>
           <p className="text-sm text-base-content/80">
@@ -38,7 +38,7 @@ export function PackingProgress({ progress, percentComplete, onCancel, isCancell
             </p>
           ) : null}
         </div>
-        <div className="flex w-full flex-col gap-3 md:w-72">
+        <div className="flex w-full flex-col gap-2 md:w-72">
           <progress
             className="progress progress-primary w-full"
             value={percentComplete}

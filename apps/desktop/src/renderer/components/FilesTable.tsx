@@ -35,7 +35,7 @@ export function FilesTable({
 
     const messageKey = emptyStateKey ?? 'table_empty_state';
     return (
-      <div className="rounded-lg border border-base-content/20 p-6 text-center text-base-content/60">
+      <div className="rounded-lg border border-base-content/20 p-4 text-center text-base-content/60">
         {t(messageKey)}
       </div>
     );

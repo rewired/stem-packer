@@ -26,15 +26,15 @@ export function SelectionSummary({ folderPath, fileCount, totalSize, ignoredCoun
     ignoredCount > 0 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3';
 
   return (
-    <div className="rounded-xl border border-base-content/30 bg-base-100/5 p-6">
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="rounded-xl border border-base-content/30 bg-base-100/5 p-4">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-base-content/60">
             {t('selection_summary_title')}
           </h3>
           <span className="badge badge-outline badge-primary">{fileCountLabel}</span>
         </div>
-        <dl className={`grid gap-4 ${gridColumns}`}>
+        <dl className={`grid gap-3 ${gridColumns}`}>
           <div className="flex flex-col gap-1">
             <dt className="text-xs uppercase text-base-content/60">
               {t('selection_summary_folder')}

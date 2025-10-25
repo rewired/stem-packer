@@ -108,8 +108,8 @@ export function PackCard({
       className="w-full"
     >
       <div className="card bg-base-200 shadow-xl">
-        <div className="card-body">
-          <div className="flex flex-col gap-4">
+        <div className="card-body gap-3 p-4">
+          <div className="flex flex-col gap-3">
             {showSelectionControls ? (
               <DropSurface
                 isActive={false}
@@ -126,8 +126,8 @@ export function PackCard({
               />
             ) : null}
             {showMonoSplitWarning ? (
-              <div className="alert alert-warning flex flex-col gap-3">
-                <div className="flex items-start gap-3">
+              <div className="alert alert-warning flex flex-col gap-2">
+                <div className="flex items-start gap-2">
                   <Icon name="warning" className="text-2xl" />
                   <div className="space-y-1">
                     <p className="font-semibold">{t('warning_zip_mono_split_title')}</p>
@@ -153,7 +153,7 @@ export function PackCard({
                 </div>
               </div>
             ) : null}
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
                 <span>
                   {selectedFolder
@@ -191,7 +191,7 @@ export function PackCard({
               emptyStateKey="no_supported_audio_in_folder"
             />
             <MetadataForm fields={metadataFields} onChange={onMetadataChange} onArtistBlur={onArtistBlur} />
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <button
                 className="btn btn-outline"
                 type="button"

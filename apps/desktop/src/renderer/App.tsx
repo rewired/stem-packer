@@ -538,9 +538,9 @@ function AppContent() {
 
   return (
     <main className="min-h-screen bg-base-300 text-base-content">
-      <section className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-12">
+      <section className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
         <Header onAboutClick={() => setAboutOpen(true)} appInfo={appInfo} />
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <div role="tablist" className="tabs tabs-boxed w-fit">
             <button
               id="pack-tab"
@@ -565,7 +565,7 @@ function AppContent() {
               {t('tab_preferences')}
             </button>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-3">
             <PackCard
               active={activeTab === 'pack'}
               panelId="pack-panel"

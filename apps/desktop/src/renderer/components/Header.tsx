@@ -10,8 +10,8 @@ interface HeaderProps {
 export function Header({ onAboutClick, appInfo }: HeaderProps) {
   const { t } = useTranslation();
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
+    <header className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
         <Icon name="library_music" className="text-4xl" />
         <div>
           <h1 className="text-3xl font-semibold">{t('app_header_title')}</h1>

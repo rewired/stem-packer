@@ -17,12 +17,12 @@ export function MetadataForm({ fields, onChange, onArtistBlur }: MetadataFormPro
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
         <h3 className="text-xl font-semibold">{t('metadata_section_title')}</h3>
         <p className="text-sm text-base-content/70">{t('metadata_section_description')}</p>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-3 md:grid-cols-2">
         <label className="form-control" htmlFor="metadata-title">
           <span className="label-text" id="metadata-title-label">
             {t('metadata_field_title')}
