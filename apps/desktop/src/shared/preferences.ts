@@ -35,7 +35,6 @@ export interface Preferences {
   auto_split_multichannel_to_mono: boolean;
   ignore_enabled: boolean;
   ignore_globs: string[];
-  lastInputDir?: string;
 }
 
 export interface AppInfo {
@@ -69,7 +68,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   outputDir: '',
   auto_split_multichannel_to_mono: false,
   ignore_enabled: true,
-  ignore_globs: [...DEFAULT_IGNORE_GLOBS],
-  lastInputDir: undefined
+  ignore_globs: [...DEFAULT_IGNORE_GLOBS]
 };
 

@@ -14,7 +14,7 @@ Packing sessions reuse the `stems-XX.zip` and `stems.7z.###` naming bases. Users
 * Expose IPC endpoints `packing:detect-collisions` and `packing:overwrite-collisions`, revalidating requests server-side before deleting files to guard against arbitrary file removal.
 * Show a renderer modal when collisions exist. The modal presents two localized actions:
   * **Ignore and overwrite** — invokes the overwrite endpoint and emits a success toast once deletion completes.
-  * **Abort** — clears the current selection, resets `lastInputDir`, and plays a cancellation toast so the UI returns to the idle state.
+  * **Abort** — clears the current selection and plays a cancellation toast so the UI returns to the idle state.
 * Persist toast strings and dialog copy in the shared localization catalogs so future locales inherit the flow without hard-coded English.
 * Cover the logic with integration tests (ZIP and 7z) plus renderer E2E tests that exercise both dialog paths.
 

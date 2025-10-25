@@ -31,8 +31,7 @@ describe('PreferencesStore', () => {
       outputDir: 'exports',
       auto_split_multichannel_to_mono: true,
       ignore_enabled: false,
-      ignore_globs: ignoreGlobs,
-      lastInputDir: '/music/session',
+      ignore_globs: ignoreGlobs
     });
 
     expect(updated.ignore_globs).not.toBe(ignoreGlobs);
@@ -42,7 +41,6 @@ describe('PreferencesStore', () => {
       outputDir: 'exports',
       auto_split_multichannel_to_mono: true,
       ignore_enabled: false,
-      lastInputDir: '/music/session',
     });
 
     const reloaded = new PreferencesStore(tempDir);
@@ -54,7 +52,6 @@ describe('PreferencesStore', () => {
     expect(snapshot.outputDir).toBe('exports');
     expect(snapshot.auto_split_multichannel_to_mono).toBe(true);
     expect(snapshot.ignore_enabled).toBe(false);
-    expect(snapshot.lastInputDir).toBe('/music/session');
     expect(snapshot.ignore_globs).toEqual(ignoreGlobs);
     expect(snapshot.ignore_globs).not.toBe(updated.ignore_globs);
 

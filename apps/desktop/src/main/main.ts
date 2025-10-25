@@ -111,7 +111,6 @@ ipcMain.handle('dialog:choose-input-folder', async () => {
   }
 
   const folderPath = result.filePaths[0];
-  await preferencesStore.set({ lastInputDir: folderPath });
   return { canceled: false, folderPath };
 });
 
@@ -125,7 +124,6 @@ ipcMain.handle('scan:folder', async (_event, folderPath: string) => {
     : path.dirname(resolvedPath);
 
   const result = await scanAudioFiles(directoryPath, preferences);
-  await preferencesStore.set({ lastInputDir: directoryPath });
   return result;
 });
 

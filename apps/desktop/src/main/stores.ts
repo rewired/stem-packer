@@ -15,11 +15,14 @@ export class PreferencesStore {
     try {
       const content = await fs.readFile(this.filePath, 'utf8');
       const parsed = JSON.parse(content) as Partial<Preferences>;
+      const { lastInputDir: _legacyLastInputDir, ...rest } = parsed as Partial<Preferences> & {
+        lastInputDir?: unknown;
+      };
       this.data = {
         ...DEFAULT_PREFERENCES,
-        ...parsed,
-        ignore_globs: Array.isArray(parsed.ignore_globs)
-          ? [...parsed.ignore_globs]
+        ...rest,
+        ignore_globs: Array.isArray(rest.ignore_globs)
+          ? [...rest.ignore_globs]
           : [...DEFAULT_PREFERENCES.ignore_globs]
       };
     } catch (error) {
