@@ -82,7 +82,10 @@ describe('renderer packing workflow', () => {
       onPackingError: vi.fn().mockImplementation((listener) => {
         errorListener = listener;
         return vi.fn();
-      })
+      }),
+      resolveDroppedPaths: vi
+        .fn()
+        .mockResolvedValue({ status: 'success', folderPath: '/input' })
     };
 
     window.stemPacker = api;

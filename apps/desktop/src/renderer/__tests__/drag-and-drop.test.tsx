@@ -25,6 +25,7 @@ describe('renderer drag-and-drop handling', () => {
   ];
 
   let scanFolderMock: ReturnType<typeof vi.fn>;
+  let resolveDroppedPathsMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     scanFolderMock = vi
@@ -35,6 +36,11 @@ describe('renderer drag-and-drop handling', () => {
         files: scanFiles,
         monoSplitTooLargeFiles: []
       });
+
+    resolveDroppedPathsMock = vi.fn().mockResolvedValue({
+      status: 'success',
+      folderPath: '/input/session'
+    });
 
     const api: StemPackerApi = {
       getVersion: () => '0.0.0-test',
@@ -73,7 +79,8 @@ describe('renderer drag-and-drop handling', () => {
         .mockImplementation(() => vi.fn()),
       onPackingError: vi
         .fn()
-        .mockImplementation(() => vi.fn())
+        .mockImplementation(() => vi.fn()),
+      resolveDroppedPaths: resolveDroppedPathsMock as unknown as StemPackerApi['resolveDroppedPaths']
     };
 
     window.stemPacker = api;
@@ -104,6 +111,41 @@ describe('renderer drag-and-drop handling', () => {
     await waitFor(() => {
       expect(scanFolderMock).toHaveBeenCalledWith('/input/session');
     });
+
+    expect(resolveDroppedPathsMock).toHaveBeenCalledTimes(1);
+    expect(resolveDroppedPathsMock).toHaveBeenCalledWith({
+      candidate: '/input/session',
+      hasDirectoryEntry: false,
+      paths: [
+        '/input/session/Sub1/Stems 1.wav',
+        '/input/session/Sub2/Nested/Stems 2.wav'
+      ]
+    });
+  });
+
+  it('shows a warning toast when files are dropped', async () => {
+    resolveDroppedPathsMock.mockResolvedValueOnce({
+      status: 'error',
+      reason: 'not_directory'
+    });
+
+    render(<App />);
+
+    const dropLabel = await screen.findByText('Drop a folder of stems');
+    const dropTarget = dropLabel.closest('div[role="presentation"]');
+    expect(dropTarget).not.toBeNull();
+
+    const dataTransfer = {
+      getData: (type: string) => (type === 'text/plain' ? '/input/session/song.wav' : ''),
+      files: [] as unknown as FileList
+    };
+
+    await act(async () => {
+      fireEvent.drop(dropTarget!, { dataTransfer });
+    });
+
+    expect(scanFolderMock).not.toHaveBeenCalled();
+    await screen.findByText('Only folders can be imported. Drop a folder to continue.');
   });
 });
 

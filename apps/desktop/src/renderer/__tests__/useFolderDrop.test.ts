@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractPathsFromDataTransfer, resolveDroppedFolder } from '../hooks/useDroppedPaths';
+import { extractPathsFromDataTransfer, resolveDroppedFolder } from '../hooks/useFolderDrop';
 
 function createFileList(entries: Array<Partial<File> & { path?: string }>): FileList {
   const files = entries.map((entry) => entry as File & { path?: string });
@@ -47,7 +47,7 @@ function createDataTransferStub(options: {
   } as unknown as DataTransfer;
 }
 
-describe('useDroppedPaths helpers', () => {
+describe('useFolderDrop helpers', () => {
   it('extracts paths from text/uri-list payloads', () => {
     const dataTransfer = createDataTransferStub({
       uriList: 'file:///Users/test/Audio%20File.wav\n'

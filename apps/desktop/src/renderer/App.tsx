@@ -20,7 +20,8 @@ import { Header } from './components/Header';
 import { AboutModal } from './components/AboutModal';
 import { CollisionDialog, type CollisionPrompt } from './components/CollisionDialog';
 import { SplitDecisionDialog, type SplitDecisionPrompt } from './components/SplitDecisionDialog';
-import { extractPathsFromDomDrop, resolveDroppedFolder } from './hooks/useDroppedPaths';
+import type { DroppedFolderResolutionError } from '../shared/drop';
+import { resolveDroppedFolderFromDomEvent } from './hooks/useFolderDrop';
 import type { PackingStatus } from './components/PackingStatusAlerts';
 
 interface PerformScanOptions {
@@ -241,22 +242,30 @@ function AppContent() {
     }
   };
 
-  const handleDrop = async (paths: string[]) => {
-    if (paths.length === 0) {
-      return;
-    }
-
-    const folderPath = resolveDroppedFolder(paths);
-    if (!folderPath) {
-      return;
-    }
-
+  const handleFolderDrop = async (folderPath: string) => {
     await performScan(folderPath);
   };
-  const handleDropRef = useRef(handleDrop);
+
+  const handleDropError = async (reason: DroppedFolderResolutionError) => {
+    if (reason === 'not_directory') {
+      showToast(t('toast_drop_only_folders'), 'warning');
+      return;
+    }
+
+    if (reason === 'not_found') {
+      showToast(t('toast_drop_missing_folder'), 'error');
+      return;
+    }
+
+    if (reason === 'unknown') {
+      console.warn('Dropped data could not be resolved to a folder.');
+    }
+  };
+
+  const dropHandlersRef = useRef({ onSuccess: handleFolderDrop, onError: handleDropError });
   useEffect(() => {
-    handleDropRef.current = handleDrop;
-  }, [handleDrop]);
+    dropHandlersRef.current = { onSuccess: handleFolderDrop, onError: handleDropError };
+  }, [handleDropError, handleFolderDrop]);
 
   useEffect(() => {
     const handleWindowDragOver = (event: DragEvent) => {
@@ -274,17 +283,18 @@ function AppContent() {
         return;
       }
 
-      const paths = extractPathsFromDomDrop(event);
-      if (paths.length === 0) {
-        return;
-      }
-
-      const dropHandler = handleDropRef.current;
-      if (!dropHandler) {
-        return;
-      }
-
-      void dropHandler(paths);
+      void resolveDroppedFolderFromDomEvent(event)
+        .then(async (result) => {
+          const { onSuccess, onError } = dropHandlersRef.current;
+          if (result.status === 'success') {
+            await onSuccess(result.folderPath);
+          } else if (onError) {
+            await onError(result.reason);
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to resolve dropped folder', error);
+        });
     };
 
     window.addEventListener('dragover', handleWindowDragOver);
@@ -294,7 +304,7 @@ function AppContent() {
       window.removeEventListener('dragover', handleWindowDragOver);
       window.removeEventListener('drop', handleWindowDrop);
     };
-  }, [activeTab, isScanning]);
+  }, [activeTab, dropHandlersRef, isScanning]);
 
   const handleChooseFolder = async () => {
     const result = await window.stemPacker.chooseInputFolder();
@@ -529,7 +539,8 @@ function AppContent() {
               files={files}
               monoSplitTooLargeFiles={monoSplitTooLargeFiles}
               isScanning={isScanning}
-              onDrop={handleDrop}
+              onFolderDrop={handleFolderDrop}
+              onDropError={handleDropError}
               onChooseFolder={handleChooseFolder}
               selectedFolder={selectedFolder}
               ignoredCount={ignoredCount}
