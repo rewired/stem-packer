@@ -58,6 +58,10 @@ All notable changes to StemPacker will be documented in this file.
 - Introduced a multichannel split decision dialog that offers mono splits, 7z volumes, or cancellation with localized UI and flow tests.
 
 ### Changed
+- Upgraded the desktop renderer styling toolchain to DaisyUI v5 and migrated the Tailwind
+  config to `tailwind.config.ts` (ESM) so build/lint/test commands load the new theme selectors
+  without CommonJS fallbacks; developers should ensure local editors reload Tailwind intellisense
+  after the rename.
 - Densified the files table with a sticky header, capped scroll height, and fixed-width columns
   so file metadata stays aligned while scrolling.
 - Let the pack selection summary auto-size by removing its fixed minimum height so the card matches
